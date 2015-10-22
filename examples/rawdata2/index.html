@@ -1,0 +1,280 @@
+<!doctype html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.0/yeti/bootstrap.min.css">
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="angular.js"></script>
+    <script src="angular-ui-bootstrap.js"></script>
+    <script src="ngStorage.min.js"></script>
+    <script src="angular-charts.js"></script>
+    <style>
+        .chart{
+            height:400px;
+            width:100%;
+        }
+    </style>
+</head>
+<body ng-app="counters_app" ng-controller="MainCtrl" ng-cloak>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col col-xs-5"><h2>Vehicle Off Hours Report</h2><h4>API: {{server}}</h4></div>
+            <div class="col-xs-6 text-right"><h5>{{auth.username}}</h5></div>
+            <div class="col-xs-1 text-right"><h5><a href='' ng-click="logout()" class='text-danger'><u>Logout</u></a></h5></div>
+        </div>
+    </div>
+    <div class='container-fluid' ng-show='!auth.token'>
+        <div class="row">
+            <div class="col-xs-12 col-md-4 col-md-offset-4">
+                <form class="form-horizontal" role="form">
+                    <div class="form-group">
+                        <label for="inputEmail3" class="col-sm-2 control-label">Username</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="inputEmail3" placeholder="Email" ng-model='auth.username'>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputPassword3" class="col-sm-2 control-label">Password</label>
+                        <div class="col-sm-10">
+                            <input type="password" class="form-control" id="inputPassword3" placeholder="Password" ng-model='auth.password'>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" ng-model='auth.set'> Remember me
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button type="submit" class="btn btn-primary" ng-click='login()'>Login</button>
+                        </div>
+                    </div>
+                </form>
+                <div class="col-xs-12">
+                    <p ng-show='auth.token'>token = {{auth.token}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid" ng-show='auth.token'>
+        <div class="row">
+            <div class="col-xs-4" style='height: 400px; overflow: scroll;'>
+                <input type="text" class='form-control col-xs-4' ng-model='vehicle_filter' placeholder='Search vehicles'>
+                <table class='table' style='width:100%;'>
+                    <tr
+                    ng-repeat='vehicle in vehicles | filter: vehicle_filter'
+                    ng-class='{"bg-warning":($index+1)%2&&vehicle.id!=selected_vehicle.id, "bg-primary":vehicle == selected_vehicle}'
+                    ng-click='select_vehicle(vehicle)'>
+                        <td>{{vehicle.id}}</td>
+                        <td>{{vehicle.name}}</td>
+                        <td>{{vehicle.device}}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-xs-8">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>From :</h4>
+                        <p class="input-group">
+                            <input
+                            type="text" class="form-control"
+                            datepicker-popup="{{format}}"
+                            max-date='dts.to'
+                            ng-model="dts.from" is-open="dts.open.from"
+                            datepicker-options="dateOptions"
+                            close-text="Close" />
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="toggle_dt('from', $event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>To: </h4>
+                        <p class="input-group">
+                            <input
+                            type="text" class="form-control"
+                            datepicker-popup="{{format}}"
+                            min-date='dts.from'
+                            max-date='dts.today'
+                            ng-model="dts.to" is-open="dts.open.to"
+                            datepicker-options="dateOptions"
+                            close-text="Close" />
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="toggle_dt('to', $event)"><i class="glyphicon glyphicon-calendar"></i></button>
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-xs-12">
+                        <h3>Off Hours: </h3>
+                        <h4>Weekdays: </h4>
+                        <div class="row">
+                            <div class="col-xs-6">
+                                Before: <timepicker ng-model="dt.from" hour-step="1" minute-step="15" show-meridian="true"></timepicker>
+                            </div>
+                            <div class="col-xs-6">
+                                After : <timepicker ng-model="dt.to" hour-step="1" minute-step="15" show-meridian="true"></timepicker>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12">
+                        <h4>Weekends: </h4>
+                        <label>Same as Weekdays <input type="checkbox" ng-model='dts.same'></label>
+                        <div class="row">
+                            <div class="col-xs-6" ng-show='!dts.same'>
+                                Before: <timepicker ng-model="dt.from" hour-step="1" minute-step="15" show-meridian="true"></timepicker>
+                            </div>
+                            <div class="col-xs-6" ng-show='!dts.same'>
+                                After : <timepicker ng-model="dt.to" hour-step="1" minute-step="15" show-meridian="true"></timepicker>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xs-12 text-center">
+                        <button class="btn btn-default" ng-disabled='selected_vehicle==null' ng-click='generate_report()'>Generate Report</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" ng-show='auth.token'>
+            <div class="col-xs-12">
+                <h4>{{selected_vehicle.name}}</h4>
+            </div>
+            <div class="col-xs-12">
+                <pre>{{report_data|json}}</pre>
+            </div>
+        </div>
+    </div>
+    <script>
+        function to_url(data){
+            url = Object.keys(data).map(function(k) {
+                return encodeURIComponent(k) + '=' + encodeURIComponent(data[k])
+            }).join('&')
+            return url
+        }
+        server = 'https://pegasus1.pegasusgateway.com/api/'
+        counters_app = angular.module('counters_app', ['ui.bootstrap','ngStorage','angularCharts']);
+        counters_app.controller('MainCtrl', function($scope,$http,$localStorage) {
+            $localStorage.$reset()
+            $scope.server = server
+            $localStorage.$default({auth:{}, report_data:{}, vehicle:null })
+            $scope.report_data = $localStorage.report_data
+            $scope.auth = $localStorage.auth
+            $scope.selected_vehicle = $localStorage.vehicle
+            $scope.vehicles = []
+            $scope.loading = {}
+
+            $scope.dateOptions = {
+                formatYear: 'yy',
+                startingDay: 1
+            };
+            $scope.dts = {
+                today : new Date(),
+                from : new Date(),
+                to: new Date(),
+                same : true,
+                open: {to:false, from:false}
+            }
+            $scope.format = 'yyyy-MM-dd'
+            $scope.toggle_dt = function(picker,$event){
+                $event.preventDefault();
+                $event.stopPropagation();
+                $scope.dts.open[picker] = !$scope.dts.open[picker]
+            }
+
+            $scope.login_check = function(){
+                $http.get(server+'login')
+                .success(function(data) {
+                    $scope.get_vehicles()
+                })
+                .error(function(data,s,h) {
+                    $scope.auth.token = undefined
+                    console.log("-----Error-----")
+                });
+            }
+            $scope.logout = function(){
+                $scope.auth.token = undefined
+                //make actual logout request
+                $http.get(server+'logout')
+                success(function(data){
+                    //pass
+                })
+                $localStorage.auth = undefined
+            }
+            $scope.login = function(){
+            	$http.post(server+'login',$scope.auth)
+            	.success(function(data) {
+                	$scope.message = data.message
+                    $scope.auth.token = data.auth
+                    if($scope.auth.save){
+                        $localStorage.auth=auth
+                    }
+                    $scope.get_vehicles()
+                    $http.defaults.headers.common.Authenticate = data.auth
+                })
+                .error(function(data,s,h) {
+            		console.log(data,s,h)
+                	console.log("-----Error-----")
+            	});
+            }
+            $scope.get_vehicles = function(page){
+                page = page || 1
+                if(page == 1){
+                    $scope.loading.vehicles = true
+                }
+            	$http.get(server+'vehicles?set=200&page='+page,{})
+            	.success(function(data, s, h) {
+                	$scope.vehicles = $scope.vehicles.concat(data.data)
+                    if(page < data.pages){
+                        $scope.get_vehicles(page+1)
+                    }else{
+                        $scope.loading.vehicles = false
+                    }
+                })
+                .error(function(data,s,h) {
+            		console.log(data,s,h)
+                	console.log("-----Error-----")
+            	});
+        	}
+            $scope.test = function(a){
+                console.log(a)
+            }
+            $scope.select_vehicle = function(vehicle){
+                $scope.selected_vehicle = vehicle
+                $localStorage.vehicle = vehicle
+            }
+            $scope.generate_report = function(){
+                $scope.report_data = {loading:'........'}
+                from_date = $scope.dts.from
+                to_date = $scope.dts.to
+                from = from_date.getFullYear()+'/'+(from_date.getMonth()+1)+'/'+from_date.getDate()
+                to = to_date.getFullYear()+'/'+(to_date.getMonth()+1)+'/'+to_date.getDate()
+                request = {
+                    vids : $scope.selected_vehicle.id,
+                    genevcodes : [2,3],
+                    evfields : "io_ign,mph,code,lat,lon,vo,event_time",
+                    from : from,
+                    to : to
+                }
+                $http.get(server+'rawdata?'+to_url(request))
+                .success(function(data){
+                    $scope.report_data = data
+                    $localStorage.report_data = data
+                })
+            }
+            $scope.process = function(){
+
+            }
+            if($scope.auth.token){
+                $http.defaults.headers.common.Authenticate = $scope.auth.token
+                $scope.login_check()
+            }
+            if($scope.report_data.days){
+                $scope.process()
+            }
+        })
+    </script>
+</body>
+</html>

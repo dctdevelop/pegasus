@@ -1,0 +1,156 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Syrus Web Socket Tester</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
+		<script src="socket.io.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.4/angular.js"></script>
+		<script src="main.coffee" type='text/coffeescript'></script>
+		<script src="coffee-script.js"></script>
+	</head>
+	<body layout='column' ng-controller="MainCtrl">
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-xs-12">
+					<h3>Pegasus Gateway Live Communications</h3>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-6">
+					<form class="form">
+					  <div class="form-group">
+					    <label class="" for="exampleInputEmail3">Pegasus</label>
+					    <input type="text" class="form-control" id="exampleInputEmail3" placeholder="https://gateway.com" ng-model='auth.pegasus'>
+					  </div>
+					  <div class="form-group">
+					    <label class="" for="exampleInputEmail3">Username</label>
+					    <input type="text" class="form-control" id="exampleInputEmail3" placeholder="user[@company.com]" ng-model='auth.username'>
+					  </div>
+					  <div class="form-group">
+					    <label class="" for="exampleInputPassword3">Password</label>
+					    <input type="password" class="form-control" id="exampleInputPassword3" placeholder="Password" ng-model='auth.password'>
+					  </div>
+					  <button type="button" class="btn btn-primary"
+					  	ng-click='authenticate()'
+					  	ng-disabled='!(auth.pegasus.length && auth.username.length && auth.password.length)'>
+					  		Sign in
+					  	</button>
+					</form>
+					<h1 class='text-danger'>{{error}}</h1>
+					<h1 class='text-info'>{{message}}</h1>
+					<input type="text" class="form-control" id="exampleInputPassword3" placeholder="Search" ng-model='_filter'>
+					<button class="btn btn-info" ng-click="listen('all')" >All</button>
+					<button class="btn btn-danger" ng-click="stop('all')">Stop All</button>
+					<div style='max-height: 400px; overflow-y: scroll'>
+						<table class="table table-condensed table-hover">
+							<tr ng-repeat='vehicle in vehicles | filter: _filter' ng-click='toggle(vehicle)' ng-class='{"bg-info": listening.indexOf(vehicle) >= 0 }'>
+								<td>{{vehicle}}</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				<div class="col-xs-6" style='height: 405px;'>
+					<h3>Inputs/Outputs</h3>
+					<h3 ng-if="ios.vid!=null"><small>Vehicle: {{ios.vid}}</small></h3>
+					<table class="table table-condensed table-striped">
+						<thead>
+							<tr>
+								<th>pwr</th>
+								<th>ign</th>
+								<th>in #1</th>
+								<th>in #2</th>
+								<th>in #3</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr ng-if="ios.vid!=null">
+								<td ng-if="ios.io_pwr" style="color:green;">ON</td>
+								<td ng-if="!ios.io_pwr" style="color:red;">OFF</td>
+								<td ng-if="ios.io_ign" style="color:green;">ON</td>
+								<td ng-if="!ios.io_ign" style="color:red;">OFF</td>
+								<td ng-if="ios.io_in1" style="color:green;">ON</td>
+								<td ng-if="!ios.io_in1" style="color:red;">OFF</td>
+								<td ng-if="ios.io_in2" style="color:green;">ON</td>
+								<td ng-if="!ios.io_in2" style="color:red;">OFF</td>
+								<td ng-if="ios.io_in3" style="color:green;">ON</td>
+								<td ng-if="!ios.io_in3" style="color:red;">OFF</td>
+							</tr>
+						</tbody>
+					</table>
+					<br/>
+					<table class="table table-condensed table-striped">
+						<thead>
+							<tr>
+								<th>out #1</th>
+								<th>out #2</th>
+							</tr>
+						</thead>
+						<tbody ng-if="ios.vid!=null">
+							<tr>
+								<td ng-if="ios.io_out1" style="color:green;">ON</td>
+								<td ng-if="!ios.io_out1" style="color:red;">OFF</td>
+								<td ng-if="ios.io_out2" style="color:green;">ON</td>
+								<td ng-if="!ios.io_out2" style="color:red;">OFF</td>
+							</tr>
+							<tr>
+								<td>
+									<button ng-click="modify_output(1, true)" type="button" class="btn btn-success btn-xs">Enabled</button>
+								</td>
+								<td>
+									<button ng-click="modify_output(2, true)" type="button" class="btn btn-success btn-xs">Enabled</button>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<button ng-click="modify_output(1, false)" type="button" class="btn btn-danger btn-xs">Disabled</button>
+								</td>
+								<td>
+									<button ng-click="modify_output(2, false)" type="button" class="btn btn-danger btn-xs">Disabled</button>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+					<div ng-if="alert.type=='ERROR'" class="alert alert-danger">
+	  					<strong>Error!</strong> {{alert.msg}}
+					</div>
+					<div ng-if="alert.type=='SUCCESS'" class="alert alert-success">
+	  					<strong>SUCCESS!</strong> {{alert.msg}}
+					</div>
+				</div>
+
+				<br/>
+				<h4>Console</h4>
+				<button class='btn btn-default' ng-click='logs=[]'>Clear</button>
+				<div class="col-xs-6" style='height: 150px; overflow-y:scroll; border: 1px solid black' id='scrollme'>
+					<table class="table table-condensed table-striped">
+						<tr>
+							<td>ID</td>
+							<td>time</td>
+							<td>io_ign</td>
+							<td>io_in1</td>
+							<td>io_in2</td>
+							<td>io_in3</td>
+							<td>io_out1</td>
+							<td>io_out2</td>
+						</tr>
+						<tr ng-repeat-start="log in logs" ng-click=''>
+							<td>{{log.vid}}</td>
+							<td>{{log.event_time}}</td>
+							<td>{{log.io_ign}}</td>
+							<td>{{log.io_in1}}</td>
+							<td>{{log.io_in2}}</td>
+							<td>{{log.io_in3}}</td>
+							<td>{{log.io_out1}}</td>
+							<td>{{log.io_out2}}</td>
+						</tr>
+						<tr ng-repeat-end ng-if='log.tx'>
+							<td>Message</td>
+							<td class='text-info' colspan='4'>{{log.tx}}</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

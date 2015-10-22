@@ -1,0 +1,117 @@
+<html ng-app='FirstApp'>
+	<head>
+		<title>Muralis First Web App</title>
+		<script src='//maps.googleapis.com/maps/api/js?sensor=false'></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.8.0/lodash.min.js"></script>
+		<script src='angular.js'></script>
+		<script src='https://rawgit.com/angular-ui/angular-google-maps/2.1.0/dist/angular-google-maps.min.js'></script>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+		<style>
+			.angular-google-map-container { height: 400px; }
+		</style>
+	</head>
+	<body ng-controller='MyCtrl'>
+		<div class="container">
+			<div class="row" ng-hide='authenticated'>
+				<br><br>
+				<div class="col-xs-12">
+				<form>
+				  <div class="form-group">
+				    <label for="exampleInputEmail1">Email</label>
+				    <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email" ng-model='user'>
+				  </div>
+				  <div class="form-group">
+				    <label for="exampleInputPassword1">Password</label>
+				    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" ng-model='password'>
+				  </div>
+				  <button type="submit" class="btn btn-default" ng-click='login()'>Submit</button>
+				</form>
+				</div>
+			</div>
+			<div class='row' ng-show='authenticated'>
+				<div class="col-xs-4">
+					<ul class='list-group'>
+						<li class='list-group-item' ng-repeat='vehicle in vehicles'>
+							{{vehicle.id}} -- {{vehicle.name}} <br>
+							{{vehicle.location.location.lat}}, {{vehicle.location.location.lon}}
+						</li>
+					</ul>
+				</div>
+				<div class="col-xs-8">
+					<ui-gmap-google-map center='map.center' zoom='map.zoom'>
+						<ui-gmap-markers
+				            models='locations'
+
+				            doCluster="true"
+				            coords="'coords'"
+				            modelsbyref="true"
+				            doRebuildAll="true"
+				            >
+						    </ui-gmap-markers>
+
+					</ui-gmap-google-map>
+				</div>
+			</div>
+		</div>
+		<h1 class='text-danger'>{{error}}</h1>
+<script>
+	angular.module('FirstApp', ['uiGmapgoogle-maps'])
+	.controller('MyCtrl', function($scope, $http){
+		$scope.map = { center: { latitude: 45, longitude: -73 }, zoom: 8 };
+		$scope.authenticated = false
+		$scope.user = 'developer@digitalcomtech.com'
+		$scope.password = 'dctdevelop'
+		_server = 'https://pegasus1.pegasusgateway.com/api/v0/'
+		$scope.vehicles = []
+		$scope.locations = []
+		$scope.login = function(){
+			$http.post(_server+'login', {username:$scope.user, password:$scope.password})
+			.success(function(data){
+				token = data.auth
+				$http.defaults.headers.common.Authenticate = token
+				$scope.authenticated = true
+				$scope.load_vehicles()
+			})
+			.error(function(data){
+				$scope.error = 'Bad Password!!!!'
+			})
+		}
+		$scope.load_vehicles = function(){
+			$http.get(_server+'vehicles')
+			.success(function(response){
+				$scope.vehicles = $scope.vehicles.concat(response.data)
+				$scope.load_location_data(0)
+			})
+			.error(function(data){
+				$scope.error = 'Oops!'
+			})
+		}
+		$scope.load_location_data = function(index){
+			$scope.vehicles.forEach(function(vehicle, index, array){
+				$http.get(_server+'vehicle/'+vehicle.id+"/remote/location")
+				.success(function(data){
+					data.location.lat = data.location.lat/100000
+					data.location.lon = data.location.lon/100000
+					data.coords = {
+						latitude: data.location.lat,
+						longitude: data.location.lon
+					}
+					data.id = vehicle.id
+					vehicle.location = data
+					$scope.locations.push(data)
+				})
+			})
+
+			// vehicle = $scope.vehicles[index]
+			// $http.get(_server+'vehicle/'+vehicle.id+"/remote/location")
+			// .success(function(data){
+			// 	$scope.vehicles[index].location = data
+			// 	if(index < $scope.vehicles.length){
+			// 		$scope.load_location_data(index+1)
+			// 	}
+			// })
+		}
+	})
+</script>
+	</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Syrus Live Console</title>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
+		<script src="socket.io.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.4/angular.js"></script>
+		<script src="main.coffee" type='text/coffeescript'></script>
+		<script src="coffee-script.js"></script>
+	</head>
+	<body layout='column' ng-controller="MainCtrl">
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-xs-12">
+					<h3>Syrus Live Console</h3>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-xs-6">
+					<form class="form">
+					  <div class="form-group">
+					    <label class="" for="exampleInputEmail3">Pegasus</label>
+					    <input type="text" class="form-control" id="exampleInputEmail3" placeholder="https://gateway.com" ng-model='auth.pegasus'>
+					  </div>
+					  <div class="form-group">
+					    <label class="" for="exampleInputEmail3">Username</label>
+					    <input type="text" class="form-control" id="exampleInputEmail3" placeholder="user[@company.com]" ng-model='auth.username'>
+					  </div>
+					  <div class="form-group">
+					    <label class="" for="exampleInputPassword3">Password</label>
+					    <input type="password" class="form-control" id="exampleInputPassword3" placeholder="Password" ng-model='auth.password'>
+					  </div>
+					  <button type="button" class="btn btn-primary"
+					  	ng-click='authenticate()'
+					  	ng-disabled='!(auth.pegasus.length && auth.username.length && auth.password.length)'>
+					  		Sign in
+					  	</button>
+					</form>
+					<h1 class='text-danger'>{{error}}</h1>
+					<h1 class='text-info'>{{message}}</h1>
+					<input type="text" class="form-control" id="exampleInputPassword3" placeholder="Search" ng-model='_filter'>
+					<button class="btn btn-info" ng-click="listen('all')" >All</button>
+					<button class="btn btn-danger" ng-click="stop('all')">Stop All</button>
+					<div style='max-height: 400px; overflow-y: scroll'>
+						<table class="table table-condensed table-hover">
+							<tr ng-repeat='vehicle in vehicles | filter: _filter' ng-click='toggle(vehicle)' ng-class='{"bg-info": listening.indexOf(vehicle) >= 0 }'>
+								<td>{{vehicle}}</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+				
+
+				<h3>Console</h3>
+				
+				<!-- button class='btn btn-default' ng-click='logs=[]'>Clear</button -->
+
+				<div class="col-xs-6" style='height: 450px; overflow-y:scroll; border: 1px solid black' id='scrollme'>
+					<table style="font-family:monospace" class="table table-condensed table-striped">
+						
+						<tr ng-repeat="log in history" >
+							<td>{{log.ocid}}</td>
+							<td>{{log.cmd}}</td>
+							<td>{{log.response}}</td>
+						</tr>
+						
+					</table>
+					<div>
+						
+						<div class="cols-xs-4">
+							<input type="text" ng-model="command" />
+						</div>
+						<div class="cols-xs-4">
+							<button ng-click="sendCmd()" type="button" class="btn btn-primary"
+							>Send</button></div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

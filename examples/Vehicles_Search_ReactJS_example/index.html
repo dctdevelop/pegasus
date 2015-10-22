@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<!--
+@Author DCT developer Team.
+@email pegasus.developers@digitalcomtech.com
+@version 0.1
+@date OCT 19 2015
+::::Description:::
+Pegasus API - sample one-page-app.
+-->
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pegasus API</title>
+    <script src="build/react.js"></script>
+    <script src="build/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <!-- CSS Styles -->
+    <style media="screen">
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      padding: 20px;
+      background: #2c3e50;
+    }
+
+    .filter-list {
+      margin: auto;
+      width: 300px;
+      background: #3498db;
+      border-radius: 5px;
+      border: 1px solid #196090;
+    }
+    .filter-list input {
+      width: 100%;
+      display: block;
+      padding: 10px;
+      border-radius: 5px 5px 0px 0px;
+      border: 0;
+      font-size: 24px;
+    }
+    .filter-list input:focus {
+      outline: none;
+    }
+    .filter-list ul {
+      margin: 0;
+      padding: 0;
+    }
+    .filter-list ul li {
+      list-style-type: none;
+      margin: 0;
+      color: white;
+      padding: 10px 20px;
+      border-top: 1px solid #196090;
+    }
+    .filter-list ul li:hover {
+      background: #2980b9;
+    }
+    h1 {
+        color: white;
+    }
+    h2{
+        color: #2980b9;
+    }
+</style>
+  </head>
+  <body>
+    <header>
+        <h1  style="text-align:center">Pegasus API - Demo ReactJS</h1>
+        <h2  style="text-align:center">Vehicle Search</h2>
+    </header>
+    <section id="mount-point"></section>
+    <!-- JS code -->
+    <script type="text/babel">
+
+    var FilteredVehiclesList = React.createClass({ // Declare our REACT component.
+        /**
+        * Filter the items in the list.
+        * Listen to event change.
+        */
+        filterList: function(event){
+            var updatedList = this.state.initialItems;
+            updatedList = updatedList.filter(function(item){
+                return item.name.toLowerCase().search(event.target.value.toLowerCase()) !== -1;
+            });
+            this.setState({items: updatedList});
+        },
+
+        /**
+        * Initial state of the application.
+        */
+        getInitialState: function() {
+            return {
+                username: '',
+                token: null,
+                initialItems: [],
+                items: []
+            };
+        },
+        /**
+        * executes when the application starts.
+        */
+        componentDidMount: function() {
+            /**
+            *  __USERNAME__ refers to your username for sign in on pegasus.
+            *  __PASSWORD__ refers to your password for sign in on pegasus.
+            *  Test credentials:
+            *  username: developer@digitalcomtech.com
+            *  password: dctdevelop
+            */
+            var username = 'developer@digitalcomtech.com';
+            var password = 'dctdevelop';
+
+            //Build Sign in request
+            $.post(this.props.source+"/login",{username:username, password:password}, function(result) {
+                if (this.isMounted()) { // validate context load.
+                    var token = result.auth; // Extract token
+
+                    // update application.
+                    this.setState({
+                        username: username,
+                        token: token
+                    });
+
+                    //Get vehicles request.
+                    $.ajax({
+                        url: this.props.source+"/vehicles",
+                        headers: { Authenticate: token },
+                        type: "GET",
+                        success: function(result) {
+                            if (this.isMounted()) { // validate context load.
+                                var temp = []
+
+                                for(var i=0; i<result.data.length; i++){
+                                    var item = {name:result.data[i].name,id:result.data[i].id};
+                                    temp.push(item);
+                                };
+                                /*
+                                * update vehicles list.
+                                */
+                                this.setState({
+                                    initialItems: temp,
+                                    items: temp
+                                });
+                            }
+                        }.bind(this) //set context
+                    });
+                }
+            }.bind(this)); // set context
+        },
+
+        // Mount list items.
+        componentWillMount: function(){
+            this.setState({items: this.state.initialItems})
+        },
+        //Render component
+        render: function(){
+            return (
+                <div className="filter-list">
+                <input type="text" placeholder="Search" onChange={this.filterList}/>
+                <List items={this.state.items}/>
+                </div>
+            );
+        }
+    });
+
+    var List = React.createClass({ //Declare list component
+        //Render list component
+        render: function(){
+        return (
+            <ul>
+            {
+                this.props.items.map(function(item) {
+                    return <li key={item.id}>{item.name}</li>
+                })
+            }
+            </ul>
+        )
+    }
+    });
+
+    //Add component to DOM.
+    ReactDOM.render(
+      <FilteredVehiclesList source="https://pegasus1.pegasusgateway.com/api" />, //URL our pegasus site.
+      document.getElementById('mount-point') // mount point in the html template.
+    );
+    </script>
+  </body>
+</html>
