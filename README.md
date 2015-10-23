@@ -1,4 +1,4 @@
-# pegasus 
+# Pegasus - API support 
 Stay tunned to DCT's Pegasus API development.
 
 support@digitalcomtech.com
