@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<!--
+@Author DCT developer Team.
+@email pegasus.developers@digitalcomtech.com
+@version 0.1
+@date OCT 19 2015
+::::Description:::
+Pegasus API - sample one-page-app.
+-->
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Live Commns</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.0/yeti/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
+
+    <!-- Custom styles for this template -->
+    <link href="css/signin.css" rel="stylesheet">
+
+    <!-- JS -->
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+
+
+</head>
+<body>
+    <!-- Page container -->
+    <div class="container">
+        <header class="row">
+            <div class="col-md-6">
+                <h2>
+                    Live Communications
+                </h2>
+                <h4 id="header_source"></h4>
+            </div>
+            <div class="col-md-6">
+                <h4 id="header_username" style="float:right;"></h4>
+            </div>
+        </header>
+        <!--BEGIN  Sign in form -->
+        <form class="form-signin" id="form-signin">
+            <h2 class="form-signin-heading">Pegasus sign in</h2>
+            <label for="inputUsername" class="sr-only">Email address</label>
+            <input type="text" id="inputUsername" class="form-control" placeholder="Username" required autofocus>
+            <label for="inputPassword" class="sr-only">Password</label>
+            <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" value="remember-me"> Remember me
+                </label>
+            </div>
+            <button onClick="signin();" class="btn btn-lg btn-primary btn-block" type="button">Sign in</button>
+        </form>
+        <!--END  Sign in form -->
+
+        <!-- Main container -->
+        <section id="main-content">
+            <!-- Vehicles List -->
+            <select class="form-control">
+            </select>
+            <br/>
+            <!-- button for request to rawdata -->
+            <input class="btn btn-primary" type="button" value="Listen" id="listen-button">
+            <input class="btn btn-primary" type="button" value="Stop" id="stop-button">
+            <br/>
+            <ul id="selected_vehicle" class="list-group" style="background:#C2C2D6; list-style-type: none;" ng-if="selected_vehicle!=null">
+                <li class="list-group-item"><h4></h4><li>
+            </ul>
+            <input class="btn btn-primary" type="button" value="Clean" id="clean-button">
+            <br/>
+            <!-- Table of results -->
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Vehicle ID</th>
+                        <th>Device ID</th>
+                        <th>System Time</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table
+        </section>
+        </div> <!--END container -->
+
+
+        <script>
+
+        var source = "https://pegasus1.pegasusgateway.com";//URL our pegasus site
+        var socket = io("https://live.pegasusgateway.com/socket");
+        var token = null;
+        var selected_vehicle = null;
+
+        socket.on('_authenticated', function(message) {
+            socket.emit("vehicle:list");
+        });
+
+        socket.on('_error', function(message) {
+          console.error(message);
+        });
+
+        socket.on('_update', function(message) {
+          console.info(message);
+        });
+
+        socket.on('vehicle:list', function(vehicles) {
+          console.log(vehicles);
+        });
+
+        //When app start
+        $(document).ready(function() {
+            $('#main-content').hide();
+            $('#inputUsername').val("developer@digitalcomtech.com");
+            $('#inputPassword').val("dctdevelop");
+            $('#main-content #listen-button').click(function(){
+                listen();
+            });
+            $('#main-content #clean-button').click(function(){
+                clean();
+            });
+            $("header div h4#header_source").html("API: "+source);
+            $('#main-content #stop-button').click(function(){
+                stop_listen();
+            });
+        });
+
+        //Mount vehicles list.
+        function populateVehicles(){
+            if (token!=null){
+
+                $select = $('#main-content select')
+                $.ajax({ //Build vehicles request
+                    type: "GET",
+                    headers:{Authenticate:token},
+                    url: source+"/api/vehicles",
+                    success: function(data){
+                        $.each(data.data, function(key, item){
+                            var $option = $('<option/>').attr({
+                                value:item.id,
+                            }).text(item.name);
+
+                            $select.append($option)
+                        });
+                    }
+                });
+            }
+        }
+
+        function connect() {
+            params =   {'pegasus': source, 'auth': token};
+            console.log("Creando conexion: "+params.pegasus+", "+params.auth);
+            socket.emit("authenticate", params);
+            return
+        };
+
+        function listen(){
+            console.log( $("#main-content select").val());
+            selected_vehicle = parseInt($("#main-content select").val());
+            $("#selected_vehicle li h4").html("Selected ID: "+selected_vehicle);
+            socket.emit('listen:vehicles', selected_vehicle);
+        }
+
+        function stop_listen() {
+            console.log("Stop listen");
+            socket.emit('stop:vehicles', selected_vehicle);
+        };
+
+        socket.on('events', function(events){
+            console.log(JSON.stringify(events));
+            $tbody = $('#main-content table tbody')
+            $.each(events, function(key, item){
+                var $tr = $('<tr/>');
+
+                var $vid = $('<td/>').append(item.vid);
+                $tr.append($vid);
+
+                var $device = $('<td/>').html(item.device_id);
+                $tr.append($device);
+
+                var $time = $('<td/>').html(item.system_time);
+                $tr.append($time);
+
+                var $type = $('<td/>').html(item.type);
+                $tr.append($type);
+
+                $tbody.append($tr);
+            });
+        });
+        function clean(){
+            $('#main-content table tbody').html("");
+        }
+        //Sign in on pegasus
+        function signin(){
+            username = $('#inputUsername').val();
+            pass = $('#inputPassword').val();
+            if(pass.length > 0 && username.length > 0){
+                //Build post request
+                $.post( source+"/api/login", {username: username, password:pass}, function( data, textStatus, jqxhr ) {
+                    token = data.auth;
+                    $("header div h4#header_username").html(username);
+                    connect();
+                    $('#main-content').show()
+                    $('#form-signin').hide()
+                    populateVehicles();
+                });
+            }
+        }
+        </script>
+    </body>
+    </html>

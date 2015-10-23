@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="DCT Developer Team">
+
+    <title>Pegasus API - Trips</title>
+
+
+    <!-- Custom styles for this template -->
+    <link href="signin.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.0/yeti/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
+
+</head>
+
+<body class="container" ng-controller="MainCtrl">
+    <div >
+        <div class="row">
+            <div class="col-md-6">
+                <h2>
+                    Trips summaries
+                </h2>
+                <h4>API: {{pegasus.url}}</h4>
+            </div>
+            <div class="col-md-6">
+                <h4 style="float:right;">{{pegasus.username}}</h4>
+            </div>
+        </div>
+        <form class="form-signin" ng-if="token==null">
+            <h2 class="form-signin-heading">Sign in Pegasus</h2>
+            <label for="inputEmail" class="sr-only">Email address</label>
+            <input ng-model="pegasus.username" type="text" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
+            <label  for="inputPassword" class="sr-only">Password</label>
+            <input ng-model="pegasus.password" type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" value="remember-me"> Remember me
+                </label>
+            </div>
+            <button ng-click="signin()" class="btn btn-lg btn-primary btn-block" type="button">Sign in</button>
+        </form>
+        <div ng-if="login_error.length != ''" class="alert alert-danger">
+            <strong>Error!</strong> {{login_error}}
+        </div>
+        <div class='container-fluid typeahead-demo' ng-if="token!=null &&!show_results">
+            <div class="row">
+                <h3>Select vehicle</h3>
+                <ul class="list-group" style="background:#C2C2D6; list-style-type: none;" ng-if="selected_vehicle!=null">
+                    <li class="list-group-item"><h4>{{selected_vehicle.name}}</h4><li>
+                    </ul>
+                    <div class="col-xs-4" style='height: 400px; overflow: scroll;'>
+                        <input type="text" class='form-control col-xs-4' ng-model='vehicle_filter' placeholder='Search vehicles'>
+                        <table class='table' style='width:100%;'>
+                            <tr
+                            ng-repeat='vehicle in vehicles | filter: vehicle_filter'
+                            ng-class='{"bg-warning":($index+1)%2&&vehicle.id!=selected_vehicle.id, "bg-primary":vehicle == selected_vehicle}'
+                            ng-click='select_vehicle(vehicle)'>
+                            <td>{{vehicle.id}}</td>
+                            <td>{{vehicle.name}}</td>
+                            <td>{{vehicle.device}}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-8">
+                    <h4>From</h4>
+                    <p class="input-group">
+                      <input type="text" class="form-control" uib-datepicker-popup="{{format}}" ng-model="dt.from_time" is-open="status.opened.from"  datepicker-options="dateOptions" ng-required="true" close-text="Close" />
+                      <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="open($event, 'from')"><i class="glyphicon glyphicon-calendar"></i></button>
+                      </span>
+                    </p>
+                </div>
+                <div class="col-md-8">
+                    <h4>To</h4>
+                    <p class="input-group">
+                      <input type="text" class="form-control" uib-datepicker-popup="{{format}}" ng-model="dt.to_time" is-open="status.opened.to"  datepicker-options="dateOptions" ng-required="true" close-text="Close" />
+                      <span class="input-group-btn">
+                        <button type="button" class="btn btn-default" ng-click="open($event, 'to')"><i class="glyphicon glyphicon-calendar"></i></button>
+                      </span>
+                    </p>
+                </div>
+                <div class="col-md-3">
+                    <button ng-click="get_trips()" ng-disabled="dt.to_time==null || dt.from_time==null || selected_vehicle==null" class="btn btn-lg btn-primary btn-block" type="button">Get trips</button>
+                </div>
+            </div>
+        </div>
+        <div class='container-fluid typeahead-demo' ng-show="show_results">
+
+            <div class="col-md-3">
+                <button ng-click="show_results=false" class="btn btn-lg btn-primary btn-block" type="button">Back</button>
+            </div>
+            <div class="row">
+                <div class="col-md-12" ng-repeat="trip in trips">
+                    <h3>Trip:{{trip.id}}</h3>
+                    <pre>{{trip | json}}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.4/angular.js"></script>
+    <script src="lib/ui-bootstrap-tpls-0.14.2.min.js"></script>
+    <script src="main.coffee" type='text/coffeescript'></script>
+    <script src="coffee-script.js"></script>
+
+</body>
+</html>

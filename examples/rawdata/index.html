@@ -19,7 +19,9 @@ Pegasus API - sample one-page-app.
     <title>Pegasus API Examples - Rawdata</title>
 
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.0/yeti/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
 
     <!-- Custom styles for this template -->
     <link href="css/signin.css" rel="stylesheet">
@@ -42,6 +44,17 @@ Pegasus API - sample one-page-app.
 <body>
     <!-- Page container -->
     <div class="container">
+        <header class="row">
+            <div class="col-md-6">
+                <h2>
+                    Simple query to Raw Data
+                </h2>
+                <h4 id="header_source"></h4>
+            </div>
+            <div class="col-md-6">
+                <h4 id="header_username" style="float:right;"></h4>
+            </div>
+        </header>
         <!--BEGIN  Sign in form -->
         <form class="form-signin" id="form-signin">
             <h2 class="form-signin-heading">Pegasus sign in</h2>
@@ -60,13 +73,6 @@ Pegasus API - sample one-page-app.
 
         <!-- Main container -->
         <section id="main-content">
-
-            <!-- Page title -->
-            <header>
-                <h1>Pegasus API RawData - JQuery/Bootstrap</h1>
-            </header>
-            <br/>
-            <br/>
             <!-- Vehicles List -->
             <select class="form-control">
             </select>
@@ -88,6 +94,10 @@ Pegasus API - sample one-page-app.
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
+                        <th>Vehicle ID</th>
+                        <th>Event time</th>
+                        <th>Type</th>
+                        <th>Label</th>
                         <th>Position</th>
                         <th>device id</th>
                     </tr>
@@ -117,6 +127,9 @@ Pegasus API - sample one-page-app.
 
         //When app start
         $(document).ready(function() {
+            $('#inputUsername').val("developer@digitalcomtech.com");
+            $('#inputPassword').val("dctdevelop");
+            $("header div h4#header_source").html("API: "+source);
             $('#main-content').hide();
             $button = $('#main-content #request-button').click(function(){
                 populateTable();
@@ -129,7 +142,7 @@ Pegasus API - sample one-page-app.
                 range: true,
                 min: 1,
                 max: diffDays,
-                values: [ diffDays - 7, diffDays ],
+                values: [ diffDays - 1, diffDays ],
                 slide: DateChange
             });
             calcDate();
@@ -180,19 +193,34 @@ Pegasus API - sample one-page-app.
                 $tbody = $('#main-content table tbody').html("");
                 $.ajax({
                     type: "GET",
-                    data: {vehicles:$select = $("#main-content select").val()+"", from:from_date.toISOString().split('.')[0], to:to_date.toISOString().split('.')[0]},
+                    data: {vehicles:$("#main-content select").val(),basic:1,filter:"valid_position", from:from_date.toISOString().split('.')[0], to:to_date.toISOString().split('.')[0]},
                     headers:{Authenticate:token},
                     url: source+"/rawdata",
                     success: function(data){
                         $.each(data.events, function(key, item){
                             var $tr = $('<tr/>');
+                            var $vid = $('<td/>').html(item.vid);
+                            $tr.append($vid);
+
+                            var $evtime = $('<td/>').html(item.event_time);
+                            $tr.append($evtime);
+
+                            var $type = $('<td/>').html(item.type);
+                            $tr.append($type);
+
+                            var $label = $('<td/>').html(item.label);
+                            $tr.append($label);
+
                             var $a = $('<a/>').html(item.lat+","+item.lon);
                             $a.attr("target", "_blank");
                             $a.attr("href", "http://maps.google.com/maps?t=m&q=loc:"+item.lat+"+"+item.lon);
+
                             var $position = $('<td/>').append($a);
                             $tr.append($position);
+
                             var $device = $('<td/>').html(item.id);
                             $tr.append($device);
+
                             $tbody.append($tr);
                         });
                     }
@@ -207,7 +235,7 @@ Pegasus API - sample one-page-app.
             if(pass.length > 0 && username.length > 0){
                 //Build post request
                 $.post( source+"/login", {username: username, password:pass}, function( data, textStatus, jqxhr ) {
-                    //alert( "Exito" );
+                    $("header div h4#header_username").html(username);
                     token = data.auth;
                     $('#main-content').show()
                     $('#form-signin').hide()

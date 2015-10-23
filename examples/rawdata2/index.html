@@ -157,7 +157,7 @@
         server = 'https://pegasus1.pegasusgateway.com/api/'
         counters_app = angular.module('counters_app', ['ui.bootstrap','ngStorage','angularCharts']);
         counters_app.controller('MainCtrl', function($scope,$http,$localStorage) {
-            $localStorage.$reset()
+            //$localStorage.$reset()
             $scope.server = server
             $localStorage.$default({auth:{}, report_data:{}, vehicle:null })
             $scope.report_data = $localStorage.report_data
