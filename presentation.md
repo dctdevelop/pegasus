@@ -1,6 +1,6 @@
 # DCT Developers Conference 
-Thank you all for comming!
+Thank you all for assisting!
 
 We had a great learning experience
 
-Click on: [presentation](https://cdn.pegasusgateway.com/dctdevelop/content/)
+Click on: [Presentation](https://cdn.pegasusgateway.com/dctdevelop/content/)
