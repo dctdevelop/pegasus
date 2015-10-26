@@ -1,0 +1,126 @@
+---
+title: "DCT Developers Workshop - OCT 2015"
+author: "DCT"
+output: html_document
+---
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+library(dplyr)
+library(httr)
+library(ggplot2)
+library(lubridate)
+source("getrawdata.R")
+````
+
+```{r}
+site = "https://pegasus1.pegasusgateway.com/api"
+auth <- list (
+  username = "developer@digitalcomtech.com"
+  )
+````
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+auth$password = "dctdevelop"
+```
+
+
+```{r cache=TRUE}
+raw_query <- list(   
+  vids = "617,197,700,863,909,639",
+  #vids = "617,197,700", #good for mph density
+  from = "2015-5-1",
+  to = "2015-10-15",
+  fields = "base,rssi:@cf_rssi,vi:'vid:'+@vid__str,mph,valid_position,comdelay,type,vid,label,code,lat,lon,hdop",
+  filter = "(valid_position and mph > 5 and comdelay < 3600 and hdop < 3 and rssi < 32)",
+  export = "tsv",
+  async = "1",
+  types="10"
+  )
+
+data <- getPegasusRawData(site, auth, raw_query, iters=40, token=NULL, poll_secs=3)
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+#data <- mutate(data, vi = paste("vid:", vid, sep=""))
+data <- mutate(data, evdate = ymd_hms(event_time))
+data <- mutate(data, evday= ymd(as.character(evdate, "%Y-%m-%d" )))
+#data <- mutate(data, vi = paste("vid:", vid, sep=""), dlyl=log(comdelay ))
+#data <- filter(data, hdop<3)
+#data <- filter(data, valid_position==TRUE)
+#data <- filter(data, type==10)
+#data <- filter(data, rssi < 32)
+#data <- filter(data, comdelay < 3600)
+#data <- filter(data, mph > 5)
+#data <- filter(data, evdate > ymd(20120101))
+````
+# Observations
+
+```{r, echo=FALSE}
+dim(data)
+table(data$vi)
+```
+
+
+
+# MPH 
+## Density
+```{r echo=FALSE,  message=FALSE}
+
+tmp <- filter(data, vid %in% c(617,197,700))
+qplot(mph, data=na.omit(tmp), color=vi, fill=vi, geom=c("density"), ylab="density", xlab='MPH', facets=vi~.)
+
+qplot(mph, data=na.omit(data), color=vi, fill=vi, geom=c("density"), ylab="density", xlab='MPH', facets=vi~.)
+```
+
+####  MPH (>55) density
+```{r echo=FALSE,  message=FALSE}
+
+qplot(mph, data=na.omit(filter(data, mph>55)), color=vi, fill=vi, geom=c("density"), ylab="density", xlab='MPH > 55', facets=vi~.)
+```
+
+####  MPH (>75) density
+```{r echo=FALSE,  message=FALSE}
+
+
+qplot(mph, data=na.omit(filter(data, mph>75)), color=vi, fill=vi, geom=c("density"), ylab="density", xlab='MPH > 75', facets=vi~.)
+```
+
+#### MPH (>85)density
+```{r echo=FALSE,  message=FALSE}
+
+
+qplot(mph, data=na.omit(filter(data, mph>85)), color=vi, fill=vi, geom=c("density"), ylab="density", xlab='MPH > 85', facets=vi~.)
+```
+
+
+# HDOP
+```{r echo=FALSE,  message=FALSE}
+qplot(hdop, data=na.omit(data), color=vi, fill=vi, geom=c("density"), ylab="density", xlab='HDOP', facets=vi~.)
+
+```
+
+# RSSI
+```{r echo=FALSE,  message=FALSE}
+qplot(rssi, data=na.omit(data), color=vi, fill=vi, geom=c("density"), ylab="density", xlab='rssi', facets=vi~.)
+
+```
+
+#### Daily average 
+```{r, echo=FALSE, message=FALSE}
+
+byday <- group_by(data, evday, vi)
+daily_avg <- summarize(byday, avg = mean(rssi))
+
+qplot(evday, avg, color=vi, fill=vi, ylab="rssi - Daily Average", xlab='Day', data=daily_avg, geom=c('bar'), stat='identity', position='dodge',  facets=vi~.)
+```
+
+
+
+
+.
+
+
+
+
+
+
