@@ -1,17 +1,19 @@
 library(httr)
 
-getPegasusRawData <- function(site, auth, query, token=NULL, iters=20, poll_secs=5){
+getPegasusRawData <- function(site, auth, query, token=NULL, iters=20, poll_secs=5, jobid=NULL){
 
   if (is.null(token) )
   {
     response <- POST(paste(site, "/login", sep=""), body = auth, encode = "json")
     token <- content(response)$auth
   }
-  print ("rawdata GET")
-  flush.console()
-  response <- GET(paste(site, "/rawdata?", sep=""), query=query, add_headers(Authenticate = token))
-  job <- content(response)
-  jobid = job$job_id
+  if(is.null(jobid) == TRUE){
+    print ("rawdata GET")
+    flush.console()
+    response <- GET(paste(site, "/rawdata?", sep=""), query=query, add_headers(Authenticate = token))
+    job <- content(response)
+    jobid = job$job_id
+  }
   if ( is.null(jobid) == TRUE ) {
     print ("got no job")
     flush.console()

@@ -4,20 +4,19 @@ author: "DCT"
 output: html_document
 ---
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
-
 library(dplyr)
 library(httr)
 library(ggplot2)
 library(lubridate)
 source("getrawdata.R")
-````
+```
 
 ```{r}
 site = "https://pegasus1.pegasusgateway.com/api"
 auth <- list (
   username = "developer@digitalcomtech.com"
   )
-````
+```
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 auth$password = "dctdevelop"
@@ -25,19 +24,19 @@ auth$password = "dctdevelop"
 
 
 ```{r cache=TRUE}
-raw_query <- list(   
-  vids = "617,197,700,863,909,639",
-  #vids = "617,197,700", #good for mph density
-  from = "2015-5-1",
-  to = "2015-10-15",
-  fields = "base,rssi:@cf_rssi,vi:'vid:'+@vid__str,mph,valid_position,comdelay,type,vid,label,code,lat,lon,hdop",
-  filter = "(valid_position and mph > 5 and comdelay < 3600 and hdop < 3 and rssi < 32)",
+raw_query <- list(
+  #vehicles = "617,197,700,863,909,639",
+  from = "2015-05-01",
+  to = "2015-10-27",
+  fields = "rssi:@cf_rssi,vi:'vid:'+@vid__str,mph,valid_position,comdelay,type,vid,label,code,lat,lon,hdop",
+  #filter = "(valid_position and mph > 5 and comdelay < 3600 and hdop < 3 and rssi < 32)",
   export = "tsv",
   async = "1",
-  types="10"
+  types="10",
+  tz="America/Bogota"
   )
-
-data <- getPegasusRawData(site, auth, raw_query, iters=40, token=NULL, poll_secs=3)
+data <- NULL
+data <- getPegasusRawData(site, auth, raw_query, iters=800, token=NULL, poll_secs=3)
 ```
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
@@ -46,20 +45,19 @@ data <- mutate(data, evdate = ymd_hms(event_time))
 data <- mutate(data, evday= ymd(as.character(evdate, "%Y-%m-%d" )))
 #data <- mutate(data, vi = paste("vid:", vid, sep=""), dlyl=log(comdelay ))
 #data <- filter(data, hdop<3)
-#data <- filter(data, valid_position==TRUE)
+#data <- filter(data, valid_position=='True')
 #data <- filter(data, type==10)
 #data <- filter(data, rssi < 32)
 #data <- filter(data, comdelay < 3600)
 #data <- filter(data, mph > 5)
-#data <- filter(data, evdate > ymd(20120101))
-````
+data <- filter(data, evdate > ymd(20120101))
+```
 # Observations
 
-```{r, echo=FALSE}
+```{r echo=FALSE}
 dim(data)
 table(data$vi)
 ```
-
 
 
 # MPH 
