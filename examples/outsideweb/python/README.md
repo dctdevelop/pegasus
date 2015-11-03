@@ -17,9 +17,11 @@ Command line script to get pegasus data.
 
 
 python getdata.py
-	-d=<domain name>		exp: '-d=pegasus1.digitalcomtech.com'
-	-u=<username>			exp: '-u=developer@digitalcomtech.com'
-	-p=<password>			exp: '-p=12345'
+
+	Params:
+	-d=<domain name>		exp: -d=pegasus1.digitalcomtech.com
+	-u=<username>			exp: -u=developer@digitalcomtech.com
+	-p=<password>			exp: -p=12345
 
 	-o=<out_file_name.type, default=data.tsv> (see also -f)
 		<type>
@@ -32,6 +34,7 @@ python getdata.py
 			-o=myfile.geojson
 
 
+	Other params:
 	- Double-dashes params go directly to /rawdata query:
 		--<query_param>=value
 
@@ -42,10 +45,15 @@ python getdata.py
 			--groups="1,3"
 			--vehicles="120,122"
 
-		The following --params are fixed, hence ignored:
+		The following --params are fixed:
 			--types=10
 			--async=1
 			--export=tsv
+
+
+	Tips:
+		- Use quotes when passing paramters that include spaces or special characters
+		- Special (shell) characters must be escaped with backslah, see the examples.
 
 ```
 
