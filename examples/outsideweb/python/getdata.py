@@ -2,14 +2,14 @@
 '''
 Command line script to get pegasus data.
 
-python getpegdata.py 
+python getdata.py
 	-d=<domain name>		exp: '-d=pegasus1.digitalcomtech.com'
 	-u=<username>			exp: '-u=developer@digitalcomtech.com'
 	-p=<password>			exp: '-p=12345'
-	
+
 	-o=<out_file_name.type, default=data.tsv> (see also -f)
 		<type>
-			-tsv			
+			-tsv
 			-geojson
 			-shape
 
@@ -19,7 +19,7 @@ python getpegdata.py
 
 	-f <include query params info on out file name>
 
-	
+
 	- Pass /rawdata query params: --<query_param>=value or --<query_param>='value'
 	Examples:
 
@@ -34,7 +34,7 @@ python getpegdata.py
 		--export=tsv
 
 	Usage examples:
-	python main.py \\
+	python getdata.py \\
 		-d=pegasus1.pegasusgateway.com \\
 		-u=developer@digitalcomtech.com \\
 		-p=dctdevelop \\
@@ -44,8 +44,8 @@ python getpegdata.py
 		--fields="\$basic" \\
 		--tz="America/Bogota" \\
 		-o=data.tsv
-	
-	python main.py \\
+
+	python getdata.py \\
 		-d=pegasus1.pegasusgateway.com \\
 		-u=developer@digitalcomtech.com \\
 		-p=dctdevelop \\
@@ -98,14 +98,14 @@ if __name__ == '__main__':
 					base[toks[0][1:]] = toks[1]
 
 				continue
-		
+
 		for key in  required_base:
 			if key not in base:
-				raise Exception("Missing required param %r" %key)	
+				raise Exception("Missing required param %r" %key)
 
 		for key in  required_query:
 			if key not in query:
-				raise Exception("Missing required QUERY param %r" %key)	
+				raise Exception("Missing required QUERY param %r" %key)
 
 
 		ofile = base.get('o')
@@ -128,14 +128,14 @@ if __name__ == '__main__':
 		print str(e)
 		sys.exit()
 
-	#pprint.pprint(base)		
+	#pprint.pprint(base)
 	#pprint.pprint(query)
-	
+
 
 
 
 	tmpfile = getRawData("https://"+host, username, pas, query=query)
-	
+
 
 	if ftype == "geojson":
 		data = tsvToGeoJSON(tmpfile)
@@ -147,7 +147,7 @@ if __name__ == '__main__':
 		sys.exit()
 
 	os.rename(tmpfile, ofile.replace(".geojson", ".tsv"))
-	
+
 	print "File saved: " + ofile
 	print "Done"
 
