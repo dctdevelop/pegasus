@@ -5,9 +5,11 @@ Command line script to get pegasus data.
 
 
 python getdata.py
-	-d=<domain name>		exp: '-d=pegasus1.digitalcomtech.com'
-	-u=<username>			exp: '-u=developer@digitalcomtech.com'
-	-p=<password>			exp: '-p=12345'
+
+	Params:
+	-d=<domain name>		exp: -d=pegasus1.digitalcomtech.com
+	-u=<username>			exp: -u=developer@digitalcomtech.com
+	-p=<password>			exp: -p=12345
 
 	-o=<out_file_name.type, default=data.tsv> (see also -f)
 		<type>
@@ -19,43 +21,50 @@ python getdata.py
 			-o=myfile.tsv
 			-o=myfile.geojson
 
-	-f <include query params info on out file name>
+
+	Other params:
+	- Double-dashes params go directly to /rawdata query:
+		--<query_param>=value
+
+		Examples:
+
+			--from="2015-10-20"
+			--to="2015-10-23"
+			--groups="1,3"
+			--vehicles="120,122"
+
+		The following --params are fixed:
+			--types=10
+			--async=1
+			--export=tsv
 
 
-	- Pass /rawdata query params: --<query_param>=value or --<query_param>='value'
+	Tips:
+		- Use quotes when passing paramters that include spaces or special characters
+		- Special (shell) characters must be escaped with backslah, see the examples.
+
+
 	Examples:
+		python getdata.py \\
+			-d=pegasus1.pegasusgateway.com \\
+			-u=developer@digitalcomtech.com \\
+			-p=1234 \\
+			--from=2015-10-29T08:00:00 \\
+			--to=2015-10-29T14:00:00 \\
+			--vehicles=617 \\
+			--fields="\$basic" \\
+			--tz="America/Bogota" \\
+			-o=data.tsv
 
-		--from="2015-10-20"
-		--to="2015-10-23"
-		--groups="1,3"
-		--vehicles="120,122"
-
-	The following are fixed, hence ignored:
-		--types=10
-		--aync=1
-		--export=tsv
-
-	Usage examples:
-	python getdata.py \\
-		-d=pegasus1.pegasusgateway.com \\
-		-u=developer@digitalcomtech.com \\
-		-p=1234 \\
-		--from=2015-10-29T08:00:00 \\
-		--to=2015-10-29T14:00:00 \\
-		--vehicles=617 \\
-		--fields="\$basic" \\
-		--tz="America/Bogota" \\
-		-o=data.tsv
-
-	python getdata.py \\
-		-d=pegasus1.pegasusgateway.com \\
-		-u=developer@digitalcomtech.com \\
-		-p=1234 \\
-		--from=2015-10-29T08:00:00 \\
-		--to=2015-10-29T14:00:00 \\
-		--vehicles=617 \\
-		--fields="\$basic" \\
-		-o=data.geojson
+		python getdata.py \\
+			-d=pegasus1.pegasusgateway.com \\
+			-u=developer@digitalcomtech.com \\
+			-p=1234 \\
+			--from=2015-10-29T08:00:00 \\
+			--to=2015-10-29T14:00:00 \\
+			--vehicles=617 \\
+			--fields="\$basic" \\
+			-o=data.geojson
 
 '''
 
@@ -143,6 +152,9 @@ if __name__ == '__main__':
 		data = tsvToGeoJSON(tmpfile)
 		with open(ofile, "w") as f:
 			f.write(geojson.dumps(data))
+
+	elif ftype == "tsv":
+		pass
 
 	else:
 		print "Unknown ftype"

@@ -8,12 +8,13 @@ import logging
 import time
 import csv
 from geojson import Point, Feature, FeatureCollection
+import shapefile
 
 import requests
 
 
 class RequestError(Exception):
-	
+
 	def __init__(self, request, message=None, query=None):
 		self.request = request
 		self.message = message
@@ -90,14 +91,14 @@ def getRawData(*args, **kwargs):
 
 		logger.error(msg)
 		raise err
-	
+
 	return
 
-def _getRawData(url, username, password, 
-	query=None, 
+def _getRawData(url, username, password,
+	query=None,
 	authToken=None,
-	jobid = None, 
-	iters=300, 
+	jobid = None,
+	iters=300,
 	poll_secs=5,
 	logger=None,
 	export="tsv",
@@ -157,7 +158,7 @@ def _getRawData(url, username, password,
 		logger.info("waiting job %r... %r/%r, state=%r, step=%r/%r message=%r "%(
 				job.get('id'),
 				i,
-				iters, 
+				iters,
 				job.get('state'),
 				progress.get("step"),
 				progress.get("steps"),
@@ -179,9 +180,7 @@ def _getRawData(url, username, password,
 
 	logger.error("timeout checking job")
 
-	return 
-
-
+	return
 
 def _getFile(fname, url, headers):
 	'''
@@ -200,7 +199,7 @@ def _getFile(fname, url, headers):
 
 		fhandler.flush()
 
-	return 
+	return
 
 def tsvToGeoJSON(infname):
 	'''
@@ -227,9 +226,60 @@ def tsvToGeoJSON(infname):
 			del(props['lon'])
 
 			collection.append(Feature(geometry=Point((lon,lat)), properties=props))
-			
+
 	return FeatureCollection(collection)
 
+
+def tsvToShape(infname,outfname):
+	'''
+		Reads a TSV file name
+		returns a shapefile (a file object to be flushed/saved)
+	'''
+	#points = MultiPoint()
+	shp = shapefile.Writer(shapefile.POINT)
+	fields = {
+		'lat' : ('C', '40'),
+		'lon' : ('C', '40'),
+		'vid' : ('C', '40')
+	}
+	attributes = []
+	with open(infname, 'rb') as infile:
+		treader = csv.DictReader(infile, delimiter="\t")
+		for row in treader:
+			#pprint.pprint(row)
+			try:
+				lon = float(row.get('lon'))
+				lat = float(row.get('lat'))
+			except:
+				continue
+
+
+			shp.point(lon, lat)
+
+			props = {}
+			for key in fields.keys():
+				if key not in row:
+					continue
+
+				props[key] = row[key]
+
+			if len(props) == 0:
+				raise Exception ("No params for observation")
+
+			attributes.append(props)
+
+
+		'''for key, val in fields.iteritems():
+			shp.field(key, val[0], val[1])
+
+		for attr in attributes:
+			shp.record(**attr)'''
+
+
+
+
+
+	return shp.save(outfname)
 
 
 def resolveLocations(infname):
@@ -261,6 +311,6 @@ def resolveLocations(infname):
 				row['location_name'] = None
 				row['location_zones'] = None
 
-				
+
 
 			outwriter.writerow(row)

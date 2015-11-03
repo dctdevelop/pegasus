@@ -8,7 +8,7 @@ Stay tuned to DCT's Pegasus API development.
 
 [API documentation](https://docs.pegasusgateway.com/)
 
-[API Reference manual](https://pegasus1.digitalcomtech.com/api/docs)
+[API Reference manual](https://pegasus1.pegasusgateway.com/api/docs)
 
 ---
 support@digitalcomtech.com
