@@ -10,7 +10,43 @@ Download all files in a directory and run:
 	python getdata.py
 ```
 
-You will get a detailed help text
+You will get the following help text:
+```shell
+DCT - getdata.py
+Command line script to get pegasus data.
+
+python getdata.py
+	-d=<domain name>		exp: -d=pegasus1.digitalcomtech.com
+	-u=<username>			exp: -u=developer@digitalcomtech.com
+	-p=<password>			exp: -p=12345
+
+	-o=<out_file_name.type, default=data.tsv> (see also -f)
+		<type>
+			-tsv
+			-geojson
+			-shape
+
+		examples:
+			-o=myfile.tsv
+			-o=myfile.geojson
+
+	-f <include query params info on out file name>
+
+
+	- Pass /rawdata query params: --<query_param>=value or --<query_param>='value'
+	Examples:
+
+		--from="2015-10-20"
+		--to="2015-10-23"
+		--groups="1,3"
+		--vehicles="120,122"
+
+	The following are fixed, hence ignored:
+		--types=10
+		--aync=1
+		--export=tsv
+
+```
 
 ## Requirements
 ```shell

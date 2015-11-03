@@ -1,6 +1,8 @@
 
 '''
+DCT - getdata.py
 Command line script to get pegasus data.
+
 
 python getdata.py
 	-d=<domain name>		exp: '-d=pegasus1.digitalcomtech.com'
@@ -37,7 +39,7 @@ python getdata.py
 	python getdata.py \\
 		-d=pegasus1.pegasusgateway.com \\
 		-u=developer@digitalcomtech.com \\
-		-p=dctdevelop \\
+		-p=1234 \\
 		--from=2015-10-29T08:00:00 \\
 		--to=2015-10-29T14:00:00 \\
 		--vehicles=617 \\
@@ -48,7 +50,7 @@ python getdata.py
 	python getdata.py \\
 		-d=pegasus1.pegasusgateway.com \\
 		-u=developer@digitalcomtech.com \\
-		-p=dctdevelop \\
+		-p=1234 \\
 		--from=2015-10-29T08:00:00 \\
 		--to=2015-10-29T14:00:00 \\
 		--vehicles=617 \\
