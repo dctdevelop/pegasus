@@ -1,12 +1,29 @@
 # Get rawdata using python
+You will get a TSV file.
+You may chose get also a GeoJSON and/or a Shapefile
 
 
 ## Usage
-Within a directory with all files run
+Download all files in a directory and run:
 
-python getdata.py
+```shell
+	python getdata.py
+```
 
-This will display a help text
+You will get a detailed help text
+
+## Requirements
+```shell
+pip install requests
+```
+#### For other formats but TSV:
+```shell
+pip install geojson
+```
+
+```shell
+pip install pyshp
+```
 
 ## Examples
 
