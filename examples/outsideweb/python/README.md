@@ -22,18 +22,18 @@ Params
 	-d=<domain name>					exp: -d=pegasus1.digitalcomtech.com
 	-u=<username>						exp: -u=developer@digitalcomtech.com
 	-p=<password>						exp: -p=12345
-	-z=<Time Zone> (optional)				exp: -z="America/New_York"
+	-z=<Time Zone> (optional)			exp: -z="America/New_York"
 
-	-o=<out_file_name> (see also -f)			File path+prefix
+	-o=<out_file_name> (see also -f)	File path+prefix
 		You may specify a full path.
 		Make sure directories exists.
 
 		Examples
-			-o=outfile				Creates outfile.tsv, outfile.shp, etc...
+			-o=outfile					Creates outfile.tsv, outfile.shp, etc...
 			-o=./out/data				Creates data.tsv, data.shp, within ./out directory
 
 
-	-f=<out_formats> (see als -o)				File formats to output
+	-f=<out_formats> (see als -o)		File formats to output
 
 		Use comma sparated values to
 		generate multiple files.
