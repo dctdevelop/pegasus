@@ -133,14 +133,12 @@ Or check [this](http://stackoverflow.com/questions/29134512/insecureplatformwarn
 
 #### Get a GeoJSON file
 - Reading vehicles on groups *5* and *6*.
-- Using time zone *America/Bogota*
 - Using a more fine-grained time range (*from* - *to*)
 - Result goes to file *data.geojson*
 ```shell
 	python getdata.py \
 		-d=pegasus1.pegasusgateway.com \
 		-u=developer@digitalcomtech.com \
-		-z="Europe/Oslo" \
 		-p=1234 \
 		--from=2015-10-29T08:00:00 \
 		--to=2015-10-29T14:00:00 \
@@ -170,9 +168,9 @@ Or check [this](http://stackoverflow.com/questions/29134512/insecureplatformwarn
 		-f=shape
 ```
 
-#### Get a all formats
+#### Get all formats
 - Reading vehicles on groups *5* and *6*.
-- Using time zone *America/Bogota*
+- Using time zone *America/Chicago*
 - Using a more fine-grained time range (*from* - *to*)
 - Result goes to files *./outdir/data.shp* *./outdir/data.shx*  *./outdir/data.dbf* *./outdir/data.tsv* *./outdir/data.geojson*
 
