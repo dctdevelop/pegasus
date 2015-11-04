@@ -3,6 +3,7 @@
 # Oct 2015
 # Pegasus API client functions
 
+import datetime
 import pprint
 import logging
 import time
@@ -102,7 +103,8 @@ def _getRawData(url, username, password,
 	poll_secs=5,
 	logger=None,
 	export="tsv",
-	fname=None
+	fname=None,
+	tz=None
 	):
 
 
@@ -116,6 +118,8 @@ def _getRawData(url, username, password,
 		authToken = req.json().get("auth")
 
 	headers = {'Authenticate': authToken}
+	if tz is not None:
+		headers['X-Time-Zone'] = tz
 
 	if jobid == None:
 		if query is None:
@@ -233,18 +237,27 @@ def tsvToGeoJSON(infname):
 def tsvToShape(infname,outfname):
 	'''
 		Reads a TSV file name
-		returns a shapefile (a file object to be flushed/saved)
+		Creates  shapefiles using outfname as common name
 	'''
 	#points = MultiPoint()
 	shp = shapefile.Writer(shapefile.POINT)
+	set_fields_type = ['event_time', 'system_time']
 	fields = {
-		'lat' : ('C', '40'),
-		'lon' : ('C', '40'),
-		'vid' : ('C', '40')
+		#'event_time' : ('D'),
+		#'system_time' : ('D'),
+		#'st_event_time' : ('C'),
+		#'st_system_time' : ('C'),
 	}
 	attributes = []
 	with open(infname, 'rb') as infile:
 		treader = csv.DictReader(infile, delimiter="\t")
+		for col in treader.fieldnames:
+			if col == '':
+				continue
+			if col not in fields:
+				fields[col] = ('C', '40')
+
+
 		for row in treader:
 			#pprint.pprint(row)
 			try:
@@ -253,7 +266,6 @@ def tsvToShape(infname,outfname):
 			except:
 				continue
 
-
 			shp.point(lon, lat)
 
 			props = {}
@@ -261,7 +273,45 @@ def tsvToShape(infname,outfname):
 				if key not in row:
 					continue
 
-				props[key] = row[key]
+				val = row[key]
+				_type = None
+				if key == 'system_time' or key == 'event_time':
+					# props['st_'+ key] = val
+					# val = val.replace("T", " ")
+					# val = val.split(".")[0].split(" ")[0].replace("-", "")
+					pass
+
+				else:
+					if val.lower() == "false":
+						val = 0
+						#_type = ('L', '1')
+					elif val.lower() == "true":
+						val = 1
+						#_type = ('L', '1')
+
+
+				props[key] = val
+
+				if key not in set_fields_type:
+
+					_type = ('C', '40')
+					try:
+						float(val)
+						_type = ('N')
+
+						#try:
+						#	long(val)
+						#	_type = ('N')
+						#except:
+						#	pass
+
+					except:
+						pass
+
+					set_fields_type.append(key)
+					fields[key] = _type
+
+
 
 			if len(props) == 0:
 				raise Exception ("No params for observation")
@@ -269,17 +319,20 @@ def tsvToShape(infname,outfname):
 			attributes.append(props)
 
 
-		'''for key, val in fields.iteritems():
-			shp.field(key, val[0], val[1])
+		for key, val in fields.iteritems():
+			shp.field(key, *val)
 
 		for attr in attributes:
-			shp.record(**attr)'''
+			shp.record(**attr)
 
+	shp.save(outfname)
 
-
-
-
-	return shp.save(outfname)
+	# create the PRJ file
+	prj = open("%s.prj" % outfname, "w")
+	epsg = 'GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]'
+	prj.write(epsg)
+	prj.close()
+	return
 
 
 def resolveLocations(infname):

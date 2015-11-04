@@ -18,25 +18,38 @@ Command line script to get pegasus data.
 
 python getdata.py
 
-	Params:
-	-d=<domain name>		exp: -d=pegasus1.digitalcomtech.com
-	-u=<username>			exp: -u=developer@digitalcomtech.com
-	-p=<password>			exp: -p=12345
+Params
+	-d=<domain name>					exp: -d=pegasus1.digitalcomtech.com
+	-u=<username>						exp: -u=developer@digitalcomtech.com
+	-p=<password>						exp: -p=12345
+	-z=<Time Zone> (optional)				exp: -z="America/New_York"
 
-	-o=<out_file_name.type, default=data.tsv> (see also -f)
-		<type>
-			-tsv
-			-geojson
-			-shape
+	-o=<out_file_name> (see also -f)			File path+prefix
+		You may specify a full path.
+		Make sure directories exists.
 
-		examples:
-			-o=myfile.tsv
-			-o=myfile.geojson
+		Examples
+			-o=outfile				Creates outfile.tsv, outfile.shp, etc...
+			-o=./out/data				Creates data.tsv, data.shp, within ./out directory
 
 
-	Other params:
-	- Double-dashes params go directly to /rawdata query:
-		--<query_param>=value
+	-f=<out_formats> (see als -o)				File formats to output
+
+		Use comma sparated values to
+		generate multiple files.
+
+		Allowed: tsv, geojson, shape
+		tsv is the default.
+
+		Examples:
+			-f=tsv
+			-f=tsv,geojson
+			-f=shape
+			-f=tsv,geojson,shape
+
+
+	Double-dashes params go directly to /rawdata query:
+	--<query_param>=value
 
 		Examples:
 
@@ -50,11 +63,32 @@ python getdata.py
 			--async=1
 			--export=tsv
 
-
 	Tips:
-		- Use quotes when passing paramters that include spaces or special characters
-		- Special (shell) characters must be escaped with backslah, see the examples.
+		- Use quotes when passing parameters that include spaces or special characters
+		- Special (shell) characters must be escaped with backslash, see the examples.
 
+
+	Examples:
+		python getdata.py \
+			-d=pegasus1.pegasusgateway.com \
+			-u=developer@digitalcomtech.com \
+			-p=1234 \
+			--from=2015-10-29T08:00:00 \
+			--to=2015-10-29T14:00:00 \
+			--vehicles=617 \
+			--fields="\$basic" \
+			-o=data
+
+		python getdata.py \
+			-d=pegasus1.pegasusgateway.com \
+			-u=developer@digitalcomtech.com \
+			-p=1234 \
+			--from=2015-10-29T08:00:00 \
+			--to=2015-10-29T14:00:00 \
+			--vehicles=617 \
+			--fields="\$basic" \
+			-o=./out/data \
+			-f=tsv,geojson,shape
 ```
 
 ## Requirements
@@ -70,6 +104,13 @@ pip install geojson
 pip install pyshp
 ```
 
+#### SSL errors
+If you get a bunch of *InsecurePlatform* errors, try
+```shell
+pip install pyopenssl ndg-httpsclient pyasn1
+```
+Or check [this](http://stackoverflow.com/questions/29134512/insecureplatformwarning-a-true-sslcontext-object-is-not-available-this-prevent)
+
 ## Examples
 
 #### Get a TSV file
@@ -81,12 +122,12 @@ pip install pyshp
 		-d=pegasus1.pegasusgateway.com \
 		-u=developer@digitalcomtech.com \
 		-p=1234 \
+		-z="Europe/London" \
 		--from=2015-10-29 \
 		--to=2015-10-30 \
 		--vehicles="617,605" \
 		--fields="\$basic" \
-		--tz="Europe/London" \
-		-o=data.tsv
+		-o=data
 ```
 ---
 
@@ -99,11 +140,52 @@ pip install pyshp
 	python getdata.py \
 		-d=pegasus1.pegasusgateway.com \
 		-u=developer@digitalcomtech.com \
+		-z="Europe/Oslo" \
 		-p=1234 \
 		--from=2015-10-29T08:00:00 \
 		--to=2015-10-29T14:00:00 \
 		--groups="5,6" \
 		--fields="\$basic" \
-		--tz="America/Bogota" \
-		-o=data.geojson
+		-o=data \
+		-f=geojson
+```
+
+#### Get a Shape file
+- Reading vehicles on groups *5* and *6*.
+- Using time zone *America/Bogota*
+- Using a more fine-grained time range (*from* - *to*)
+- Result goes to files *./outdir/data.shp* *./outdir/data.shx*  *./outdir/data.dbf*
+
+```shell
+	python getdata.py \
+		-d=pegasus1.pegasusgateway.com \
+		-u=developer@digitalcomtech.com \
+		-z="America/Bogota" \
+		-p=1234 \
+		--from=2015-10-29T08:00:00 \
+		--to=2015-10-29T14:00:00 \
+		--groups="5,6" \
+		--fields="\$basic" \
+		-o=./outdir/data \
+		-f=shape
+```
+
+#### Get a all formats
+- Reading vehicles on groups *5* and *6*.
+- Using time zone *America/Bogota*
+- Using a more fine-grained time range (*from* - *to*)
+- Result goes to files *./outdir/data.shp* *./outdir/data.shx*  *./outdir/data.dbf* *./outdir/data.tsv* *./outdir/data.geojson*
+
+```shell
+	python getdata.py \
+		-d=pegasus1.pegasusgateway.com \
+		-u=developer@digitalcomtech.com \
+		-z="America/Chicago" \
+		-p=1234 \
+		--from=2015-10-29T08:00:00 \
+		--to=2015-10-29T14:00:00 \
+		--groups="5,6" \
+		--fields="\$basic" \
+		-o=./outdir/data \
+		-f=tsv,geojson,shape
 ```

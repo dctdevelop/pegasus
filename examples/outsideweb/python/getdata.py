@@ -6,25 +6,38 @@ Command line script to get pegasus data.
 
 python getdata.py
 
-	Params:
-	-d=<domain name>		exp: -d=pegasus1.digitalcomtech.com
-	-u=<username>			exp: -u=developer@digitalcomtech.com
-	-p=<password>			exp: -p=12345
+Params
+	-d=<domain name>					exp: -d=pegasus1.digitalcomtech.com
+	-u=<username>						exp: -u=developer@digitalcomtech.com
+	-p=<password>						exp: -p=12345
+	-z=<Time Zone> (optional)				exp: -z="America/New_York"
 
-	-o=<out_file_name.type, default=data.tsv> (see also -f)
-		<type>
-			-tsv
-			-geojson
-			-shape
+	-o=<out_file_name> (see also -f)			File path+prefix
+		You may specify a full path.
+		Make sure directories exists.
 
-		examples:
-			-o=myfile.tsv
-			-o=myfile.geojson
+		Examples
+			-o=outfile				Creates outfile.tsv, outfile.shp, etc...
+			-o=./out/data				Creates data.tsv, data.shp, within ./out directory
 
 
-	Other params:
-	- Double-dashes params go directly to /rawdata query:
-		--<query_param>=value
+	-f=<out_formats> (see als -o)				File formats to output
+
+		Use comma sparated values to
+		generate multiple files.
+
+		Allowed: tsv, geojson, shape
+		tsv is the default.
+
+		Examples:
+			-f=tsv
+			-f=tsv,geojson
+			-f=shape
+			-f=tsv,geojson,shape
+
+
+	Double-dashes params go directly to /rawdata query:
+	--<query_param>=value
 
 		Examples:
 
@@ -38,10 +51,9 @@ python getdata.py
 			--async=1
 			--export=tsv
 
-
 	Tips:
-		- Use quotes when passing paramters that include spaces or special characters
-		- Special (shell) characters must be escaped with backslah, see the examples.
+		- Use quotes when passing parameters that include spaces or special characters
+		- Special (shell) characters must be escaped with backslash, see the examples.
 
 
 	Examples:
@@ -53,8 +65,7 @@ python getdata.py
 			--to=2015-10-29T14:00:00 \\
 			--vehicles=617 \\
 			--fields="\$basic" \\
-			--tz="America/Bogota" \\
-			-o=data.tsv
+			-o=data
 
 		python getdata.py \\
 			-d=pegasus1.pegasusgateway.com \\
@@ -64,7 +75,8 @@ python getdata.py
 			--to=2015-10-29T14:00:00 \\
 			--vehicles=617 \\
 			--fields="\$basic" \\
-			-o=data.geojson
+			-o=./out/data \\
+			-f=tsv,geojson,shape
 
 '''
 
@@ -76,7 +88,7 @@ import getopt
 import geojson
 from pegasus import getRawData
 from pegasus import tsvToGeoJSON
-
+from pegasus import tsvToShape
 
 
 
@@ -87,7 +99,8 @@ if __name__ == '__main__':
 	required_query = ['from']
 
 	base = {
-		'o' : 'data.tsv'
+		'o' : 'data',
+		'f' : 'tsv'
 	}
 	query = {}
 	try:
@@ -120,18 +133,14 @@ if __name__ == '__main__':
 
 
 		ofile = base.get('o')
-		ftype = ofile.split(".")[-1]
-		if ftype == "tsv":
-			pass
+		formats = base.get('f', 'tsv').split(',')
+		formats = map(lambda x : x.strip(), formats )
 
-		elif ftype == "geojson":
-			pass
-		else:
-			raise Exception("Unsupported file type")
 
 		host = base['d']
 		username = base['u']
 		pas = base['p']
+		tz = base.get('z')
 
 	except Exception as e:
 		print __doc__
@@ -145,23 +154,30 @@ if __name__ == '__main__':
 
 
 
-	tmpfile = getRawData("https://"+host, username, pas, query=query)
+	tmpfile = getRawData("https://"+host, username, pas, query=query, tz=tz)
 
-
-	if ftype == "geojson":
+	saved = []
+	if 'geojson' in formats:
 		data = tsvToGeoJSON(tmpfile)
-		with open(ofile, "w") as f:
+		fname = ofile+".geojson"
+		with open(fname, "w") as f:
 			f.write(geojson.dumps(data))
+			saved.append(fname)
 
-	elif ftype == "tsv":
-		pass
+	if 'shape' in formats:
+		tsvToShape(tmpfile,ofile)
+		saved.append(ofile)
+
+	if "tsv" in formats:
+		fname = ofile+".tsv"
+		os.rename(tmpfile, fname)
+		saved.append(fname)
 
 	else:
-		print "Unknown ftype"
-		sys.exit()
+		os.remove(tmpfile)
 
-	os.rename(tmpfile, ofile.replace(".geojson", ".tsv"))
 
-	print "File saved: " + ofile
+
+	print "Files saved: %s" %pprint.pformat(saved)
 	print "Done"
 
