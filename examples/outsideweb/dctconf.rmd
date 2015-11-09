@@ -14,7 +14,7 @@ source("getrawdata.R")
 ```{r}
 site = "https://pegasus1.pegasusgateway.com/api"
 auth <- list (
-  username = "developer@digitalcomtech.com"
+  #username = "developer@digitalcomtech.com"
   )
 ```
 
@@ -26,14 +26,18 @@ auth$password = "dctdevelop"
 ```{r cache=TRUE}
 raw_query <- list(
   #vehicles = "617,197,700,863,909,639",
-  from = "2015-05-01",
+  vehicles='617',
+  from = "2015-10-25",
   to = "2015-10-27",
-  fields = "rssi:@cf_rssi,vi:'vid:'+@vid__str,mph,valid_position,comdelay,type,vid,label,code,lat,lon,hdop",
-  #filter = "(valid_position and mph > 5 and comdelay < 3600 and hdop < 3 and rssi < 32)",
+  fields = "$basic,$counters,rssi:@cf_rssi,vi:'vid:'+@vid__str",
+  filter = "(valid_position and mph > 5 and comdelay < 3600 and hdop < 3 and rssi < 32)",
+  #resample="event_time",
+  freq="1D",
+  how="rssi:mean,mph:mean,$counters:diff",
+  group_by="vid,vi",
   export = "tsv",
   async = "1",
-  types="10",
-  tz="America/Bogota"
+  types="10"
   )
 data <- NULL
 data <- getPegasusRawData(site, auth, raw_query, iters=800, token=NULL, poll_secs=3)
@@ -107,18 +111,11 @@ qplot(rssi, data=na.omit(data), color=vi, fill=vi, geom=c("density"), ylab="dens
 ```{r, echo=FALSE, message=FALSE}
 
 byday <- group_by(data, evday, vi)
+
 daily_avg <- summarize(byday, avg = mean(rssi))
 
 qplot(evday, avg, color=vi, fill=vi, ylab="rssi - Daily Average", xlab='Day', data=daily_avg, geom=c('bar'), stat='identity', position='dodge',  facets=vi~.)
+
+qplot(evday, rssi, color=vi, fill=vi, ylab="rssi - Daily Average", xlab='Day', data=byday, geom=c('bar'), stat='identity', position='dodge',  facets=vi~.)
 ```
-
-
-
-
 .
-
-
-
-
-
-

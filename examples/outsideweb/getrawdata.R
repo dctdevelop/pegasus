@@ -10,7 +10,7 @@ getPegasusRawData <- function(site, auth, query, token=NULL, iters=20, poll_secs
   if(is.null(jobid) == TRUE){
     print ("rawdata GET")
     flush.console()
-    response <- GET(paste(site, "/rawdata?", sep=""), query=query, add_headers(Authenticate = token))
+    response <- GET(paste(site, "/rawdata?", sep=""), query=query, add_headers(c(Authenticate = token, "X-Time-Zone" = 'America/Bogota')))
     job <- content(response)
     jobid = job$job_id
   }
