@@ -14,7 +14,7 @@ source("getrawdata.R")
 ```{r}
 site = "https://pegasus1.pegasusgateway.com/api"
 auth <- list (
-  #username = "developer@digitalcomtech.com"
+  username = "developer@digitalcomtech.com"
   )
 ```
 
@@ -64,7 +64,7 @@ table(data$vi)
 ```
 
 
-# MPH 
+# MPH
 ## Density
 ```{r echo=FALSE,  message=FALSE}
 
@@ -107,7 +107,7 @@ qplot(rssi, data=na.omit(data), color=vi, fill=vi, geom=c("density"), ylab="dens
 
 ```
 
-#### Daily average 
+#### Daily average
 ```{r, echo=FALSE, message=FALSE}
 
 byday <- group_by(data, evday, vi)
