@@ -13,13 +13,16 @@ app.controller "MainCtrl", ($scope, $http)->
 	$scope.logs = []
 	$scope.listening = []
 
-	socket.on '_authenticated', (message)->
-		socket.emit("vehicle:list")
+	socket.on '_authenticated', (data)->
+		console.log data
+		$scope.vehicles = data.vehicles
+		$scope.$apply()
+		socket.emit("resources")
 		return
 
 	socket.on '_error', (message)->
 		console.error message
-		$scope.error = error
+		$scope.error = message
 		$scope.$apply()
 		return
 
@@ -29,19 +32,28 @@ app.controller "MainCtrl", ($scope, $http)->
 		$scope.$apply()
 		return
 
-	socket.on 'vehicle:list', (vehicles)->
-		console.log vehicles
-		$scope.vehicles = vehicles
-		$scope.$apply()
+	socket.on 'resources', (resources)->
+		console.log resources
+		# $scope.vehicles = vehicles
+		# $scope.$apply()
 		return
 
-	socket.on 'events', (events)->
+	socket.on 'events', (envelope)->
+		console.log envelope
+
+		namespace = envelope.namespace
+		vehicle = envelope.object
+		events = envelope.payload
+
 		victim = angular.element(document.getElementById('scrollme'))[0]
 		victim.scrollTop = victim.scrollHeight+10000
+
 		events.map (i)->
 			console.log i
 			$scope.logs.push i
+
 		$scope.$apply()
+
 		return
 
 	connect = ()->
@@ -61,8 +73,10 @@ app.controller "MainCtrl", ($scope, $http)->
 		else
 			$scope.listening.push(vehicle)
 
-		console.log('emitting listen to server', vehicle)
-		socket.emit 'listen:vehicles', vehicle
+		envelope = {namespace:"vehicle-events", objects: vehicle}
+		socket.emit 'listen', envelope
+
+		console.log('emitting listen to server', envelope)
 		return
 
 	$scope.stop = (vehicle)->
@@ -71,8 +85,10 @@ app.controller "MainCtrl", ($scope, $http)->
 		else
 			$scope.listening.splice($scope.listening.indexOf(vehicle), 1)
 
-		console.log('emitting stop to server', vehicle)
-		socket.emit 'stop:vehicles', vehicle
+		envelope = {namespace:"vehicle-events", objects: vehicle}
+		socket.emit 'stop', envelope
+
+		console.log('emitting stop to server', envelope)
 		return
 
 	$scope.authenticate = ()->
