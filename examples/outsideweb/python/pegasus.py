@@ -104,7 +104,8 @@ def _getRawData(url, username, password,
 	logger=None,
 	export="tsv",
 	fname=None,
-	tz=None
+	tz=None,
+	force_sync_request=False
 	):
 
 
@@ -133,10 +134,24 @@ def _getRawData(url, username, password,
 		else:
 			export=query['export']
 
+		if force_sync_request == True:
+			del(query['async'])
+
 		logger.debug("GET /rawdata \n%s" % pprint.pformat(query))
 		req = requests.get(url+"/rawdata", params=query, headers=headers)
 		if req.status_code != 200:
 			raise RequestError(req, query)
+
+		if force_sync_request == True:
+			logger.debug("Sync request done 200 ")
+			if fname is None:
+				fname = "%f.tsv.tmp" %time.time()
+
+			f = open(fname, 'w')
+			f.write(req.text)
+
+			logger.debug("file saved: %r" %fname)
+			return fname
 
 		jobid = req.json().get("job_id")
 		if jobid is None:

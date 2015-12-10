@@ -141,6 +141,13 @@ if __name__ == '__main__':
 		username = base['u']
 		pas = base['p']
 		tz = base.get('z')
+		force_sync_request = int(base.get('fs', 0))
+		if force_sync_request == 1:
+			force_sync_request = True
+		else:
+			force_sync_request = False
+
+
 
 	except Exception as e:
 		print __doc__
@@ -154,7 +161,7 @@ if __name__ == '__main__':
 
 
 
-	tmpfile = getRawData("https://"+host, username, pas, query=query, tz=tz)
+	tmpfile = getRawData("https://"+host, username, pas, query=query, tz=tz, force_sync_request=force_sync_request)
 
 	saved = []
 	if 'geojson' in formats:
