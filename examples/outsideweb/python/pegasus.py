@@ -80,13 +80,14 @@ def getRawData(*args, **kwargs):
 		return fname
 
 	except RequestError as err:
-		msg = "code: %r" %err.request.status_code
+		msg = "Status: %r\n" %err.request.status_code
+		msg += "Headers: %s\n"%pprint.pformat(err.request.headers)
 		try:
-			msg += "\n%s" % pprint.pformat(err.request.json())
+			msg += "%s\n" % pprint.pformat(err.request.json())
 		except:
 			pass
 		try:
-			msg += "\n%s" % pprint.pformat(err.query)
+			msg += "%s\n" % pprint.pformat(err.query)
 		except:
 			pass
 
@@ -140,7 +141,7 @@ def _getRawData(url, username, password,
 		logger.debug("GET /rawdata \n%s" % pprint.pformat(query))
 		req = requests.get(url+"/rawdata", params=query, headers=headers)
 		if req.status_code != 200:
-			raise RequestError(req, query)
+			raise RequestError(req, query=query)
 
 		if force_sync_request == True:
 			logger.debug("Sync request done 200 ")
