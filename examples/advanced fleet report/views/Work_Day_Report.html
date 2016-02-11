@@ -1,0 +1,111 @@
+<div id="fromHTMLdiv">
+    <div class="row">
+        <h3 class="col-md-4 col-md-offset-1">Work Day Report</h3>
+    </div>
+    <br/>
+    <section>
+        <div class="row" layout-wrap ng-cloak>
+            <div class="col-md-4 col-sm-2">
+                <md-autocomplete ng-disabled="mc.isDisabled" md-no-cache="mc.noCache" md-selected-item="mc.selectedItem" md-search-text-change="mc.searchTextChange1(mc.searchText)" md-search-text="mc.searchText" md-selected-item-change="mc.selectedItemChange1(item)" md-items="item in mc.querySearch1(mc.searchText)" md-item-text="item.name" md-min-length="0" placeholder="Select a Group" md-menu-class="autocomplete-custom-template">
+                    <md-item-template>
+                        <span class="item-title">
+                    <span><strong> {{item.name}} </strong></span>
+                        </span>
+                        <span class="item-metadata">
+                    <span class="item-metastat" layout-padding>
+                        <strong>Company: </strong>{{item.company_name}}
+                    </span>
+                        <span class="item-metastat" style="font-weight:light;">
+                        <strong>ID: </strong>{{item.id}}
+                    </span>
+                        </span>
+                    </md-item-template>
+                </md-autocomplete>
+            </div>
+            <div class="col-xs-6 col-sm-2">
+                <md-datepicker ng-model="dates.begin" md-placeholder="Date" md-max-date="currentDate"></md-datepicker>
+            </div>
+            <div class="col-xs-6 col-sm-2">
+                <md-datepicker ng-model="dates.end" md-placeholder="To" md-max-date="currentDate"></md-datepicker>
+            </div>
+            <div class="col-xs-4 col-sm-2">
+                <md-button class="md-raised md-primary" ng-click="viewWorkDayReport(groupsSelect.vehicles)">View Report</md-button>
+            </div>
+        </div>
+    </section>
+    <br/>
+    <div class="col-md-6 col-md-offset-4" ng-show="loading">
+        <md-progress-circular md-mode="indeterminate" md-diameter="60"></md-progress-circular>
+    </div>
+    <br/>
+    <section ng-show="flag_report" ng-cloak>
+        <div class="col-md-12">
+            <table class="table" style="border:2px solid #CCC">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th></th>
+                        <th colspan="4">Work Shift 1 - Midnight</th>
+                        <th colspan="4">Work Shift 2 - Morning</th>
+                        <th colspan="4">Work Shift 3 - Evening</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th style="border-left: 2px solid #CCC;">Vehicle Name</th>
+                        <th style="border-right: 1px solid #CCC;">Date</th>
+                        <th>Hours</th>
+                        <th>Distance ({{units.distance}})</th>
+                        <th>Fuel ({{units.volume}})</th>
+                        <th style="border-right: 1px solid #CCC;">Performance ({{units.distance}}/{{units.volume}})</th>
+                        <th>Hours</th>
+                        <th>Distance ({{units.distance}})</th>
+                        <th>Fuel ({{units.volume}})</th>
+                        <th style="border-right: 1px solid #CCC;">Performance ({{units.distance}}/{{units.volume}})</th>
+                        <th>Hours</th>
+                        <th>Distance ({{units.distance}})</th>
+                        <th>Fuel ({{units.volume}})</th>
+                        <th style="border-right: 2px solid #CCC;">Performance ({{units.distance}}/{{units.volume}})</th>
+                    </tr>
+                    <tr ng-repeat="items in arrayWorkDay">
+                        <td style="border-left: 2px solid #CCC;">{{items[0].name}}</td>
+                        <td style="border-right: 1px solid #CCC;">{{items[0].date | date:'EEEE, MMM dd'}}</td>
+                        <td>{{items[0].hours}}</td>
+                        <td>{{items[0].distance | number: 2}}</td>
+                        <td>{{items[0].fuel | number:2}}</td>
+                        <td style="border-right: 1px solid #CCC;">{{items[0].performance | number:2}}</td>
+                        <td>{{items[1].hours}} </td>
+                        <td>{{items[1].distance | number: 2}}</td>
+                        <td>{{items[1].fuel | number:2}}</td>
+                        <td style="border-right: 1px solid #CCC;">{{items[1].performance | number:2}}</td>
+                        <td>{{items[2].hours}} </td>
+                        <td>{{items[2].distance | number: 2}}</td>
+                        <td>{{items[2].fuel | number:2}}</td>
+                        <td style="border-right: 2px solid #CCC;">{{items[2].performance | number:2}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+<div class="fabSpeedDialdemoBasicUsage" ng-show="flag_report" ng-cloak="">
+    <md-content mfb-menu position="br">
+        <md-fab-speed-dial md-open="mc.isOpen" md-direction="up" class="md-fling">
+            <md-fab-trigger>
+                <md-button class="md-fab md-primary">
+                    <md-icon md-svg-src="img/icons/Download.svg" aria-label="Menu"></md-icon>
+                </md-button>
+            </md-fab-trigger>
+            <md-fab-actions>
+                <md-button class="md-fab md-raised md-mini">
+                    <md-icon ng-click="FromHTML()" md-svg-src="img/icons/Download_pdf.svg" aria-label="PDF"></md-icon>
+                </md-button>
+                <md-button class="md-fab md-raised md-mini">
+                    <md-icon ng-click="exportWorkDay()" md-svg-src="img/icons/Download_excel.svg" aria-label="CSV"></md-icon>
+                </md-button>
+            </md-fab-actions>
+        </md-fab-speed-dial>
+    </md-content>
+</div>
+
+
