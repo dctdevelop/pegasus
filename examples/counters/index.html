@@ -29,7 +29,8 @@
 			<div class="col-xs-12 col-md-4 col-md-offset-4">
 				<form class="form-horizontal" role="form">
 					<div class="form-group">
-						<label for="inputEmail3" class="col-sm-2 control-label">username</label>
+					<div class="col-xs-12" style="height:50px;"></div>
+						<label for="inputEmail3" class="col-sm-2 control-label">Username</label>
 						<div class="col-sm-10">
 							<input type="email" class="form-control" id="inputEmail3" placeholder="Email" ng-model='auth.username'>
 						</div>
@@ -109,9 +110,6 @@
 				<select class='form-control' name="" id="" ng-options='t for t in types' ng-model='engine_type'></select>
 				<div ac-chart="engine_type" ac-data="engine_data" ac-config="engine_config" id='chart' class='chart'></div>
 			</div>
-			<!-- <div class="col-xs-12">
-				<pre>{{report_data|json}}</pre>
-			</div> -->
 			<div class="col-xs-12">
 				<br><br>
 				<table class='table'>
@@ -121,7 +119,7 @@
 					</tr>
 					<tr ng-repeat="d in report_data.counters">
 						<td>
-							{{d.time.year+'/'+d.time.month+'/'+d.time.day}}
+							{{d.event_time | limitTo:10 }}
 						</td>
 						<td ng-repeat='(k,v) in d' ng-if='k != "time" ' >{{v | number:2}}</td>
 					</tr>
@@ -130,14 +128,14 @@
 		</div>
 	</div>
 	<script>
-		server = 'https://pegasus1.pegasusgateway.com/api/v0/'
+		server = 'https://pegasus1.pegasusgateway.com/api/'
 		counters_app = angular.module('counters_app', ['ui.bootstrap','ngStorage','angularCharts']);
 		counters_app.controller('MainCtrl', function($scope,$http,$localStorage) {
 			$scope.auth = $localStorage.auth || {}
 			$scope.types=['pie', 'bar', 'line', 'point', 'area']
 
 			$scope.distance_type = 'bar'
-			$scope.engine_type = 'area'
+			$scope.engine_type = 'line'
 
 			$scope.vehicles = []
 			$localStorage.$reset()
@@ -219,83 +217,76 @@
 				from_date = $scope.dts.from
 				to_date = $scope.dts.to
 
-				from = from_date.getFullYear()+'/'+(from_date.getMonth()+1)+'/'+from_date.getDate()
-				to = to_date.getFullYear()+'/'+(to_date.getMonth()+1)+'/'+to_date.getDate()
-				$http.get(server+'vehicle/'+$scope.selected_vehicle.id+'/counters/deltas/day?from='+from+'&to='+to)
-				.success(function(data){
-					$scope.report_data = data
-					$localStorage.report_data = data
+				from = from_date.getFullYear()+'-'+(from_date.getMonth()+1)+'-'+from_date.getDate()
+				to = to_date.getFullYear()+'-'+(to_date.getMonth()+1)+'-'+to_date.getDate()
+				$http.get(server+'counters?vehicles='+$scope.selected_vehicle.id+'&from='+from+'T00:00:00&to='+to+'T23:59:59&delta=1D&distance=user&volume=user&time=hour')
+				.success(function(counters){
+					$scope.report_data = counters
+					$localStorage.report_data = counters
 					$scope.process()
 				})
 			}
 			$scope.process = function(){
 				$scope.distance_config = {
-					title: 'Distance, ' +$scope.report_data.units.distance+'s', // chart title
+					title: 'Distance, ' +$scope.report_data.units.distance+'s', 
 					tooltips: true,
-					labels: false, // labels on data points
-					// exposed events
+					labels: false, 
 					mouseover: function() {},
 					mouseout: function() {},
 					click: function() {},
-					// legend config
 					legend: {
-						display: true, // can be either 'left' or 'right'.
+						display: true, 
 						position: 'right',
-						// you can have html in series name
 						htmlEnabled: true
 					},
-					// override this array if you're not happy with default colors
-					// colors: [],
-					// innerRadius: 0, // Only on pie Charts
-					lineLegend: 'traditional', // Only on line Charts
-					lineCurveType: 'cardinal', // change this as per d3 guidelines to avoid smoothline
-					isAnimate: true, // run animations while rendering chart
-					yAxisTickFormat: 's', //refer tickFormats in d3 to edit this value
-					xAxisMaxTicks: 7 // Optional: maximum number of X axis ticks to show if data points exceed this number
+					lineLegend: 'traditional', 
+					lineCurveType: 'cardinal',
+					isAnimate: true, 
+					yAxisTickFormat: 's', 
+					xAxisMaxTicks: 7 
 				};
 				data = {}
 				data.series = ['&nbsp;Distance']
 				data.data = []
+				console.log($scope.report_data);
 				$scope.report_data.counters.forEach(function(value, index, array){
 					o = {}
-					o.x = value.time.day+'/'+value.time.month
-					o.y = [value.dev_dist]
-					o.tooltip = value.dev_dist + ' ' +$scope.report_data.units.distance+'s'
+					d = new Date(value.event_time)
+					o.x = d.getMonth()+1+'-'+(d.getDate()+1)
+					o.y = [value.distance]
+					o.tooltip = value.distance + ' ' +$scope.report_data.units.distance+'s'
 					data.data.push(o)
 				})
 				$scope.distance_data = data
 
 				$scope.engine_config = {
-					title: 'Engine On/Idle', // chart title
+					title: 'Engine On/Idle', 
 					tooltips: true,
-					labels: false, // labels on data points
-					// exposed events
+					labels: false, 
 					mouseover: function() {},
 					mouseout: function() {},
 					click: function() {},
-					// legend config
 					legend: {
-						display: true, // can be either 'left' or 'right'.
+						display: true, 
 						position: 'right',
-						// you can have html in series name
 						htmlEnabled: true
 					},
-					// override this array if you're not happy with default colors
 					colors: ['rgba(255,0,0,.5)','rgba(0,255,0,.5)'],
-					// innerRadius: 0, // Only on pie Charts
-					lineLegend: 'traditional', // Only on line Charts
-					lineCurveType: 'cardinal', // change this as per d3 guidelines to avoid smoothline
-					isAnimate: true, // run animations while rendering chart
-					yAxisTickFormat: 's', //refer tickFormats in d3 to edit this value
-					xAxisMaxTicks: 7 // Optional: maximum number of X axis ticks to show if data points exceed this number
+					lineLegend: 'traditional', 
+					lineCurveType: 'cardinal', 
+					isAnimate: true, 
+					yAxisTickFormat: 's', 
+					xAxisMaxTicks: 7 
 				};
 				data = {}
 				data.series = ['&nbsp;ON', '&nbsp;Idle']
 				data.data = []
 				$scope.report_data.counters.forEach(function(value, index, array){
 					o = {}
-					o.x = value.time.day+'/'+value.time.month
-					o.y = [value.dev_ign/60/60, value.dev_idle/60/60]
+					d = new Date(value.from)
+					o.x = d.getMonth()+1+'-'+(d.getDate()+1)
+					o.y = [value.ignition, value.idle]
+					o.tooltip = value.ignition + ' ' +$scope.report_data.units.time+'s On & '+(value.idle/60).toFixed(2)+' mins Idling'
 					data.data.push(o)
 				})
 				$scope.engine_data = data
