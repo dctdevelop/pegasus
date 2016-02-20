@@ -3,7 +3,9 @@ var app = angular.module('reports', ['ngStorage','ngMaterial','ng-mfb','ngRoute'
  
 //Añade aquí las constantes 
  
-app.config(function($routeProvider) {
+app.config(function($routeProvider,$mdThemingProvider) {
+
+    // $mdThemingProvider.theme('success-toast');
     
     $routeProvider   
         .when('/main', {
@@ -32,6 +34,11 @@ app.config(function($routeProvider) {
 
         .when('/graphtech', {
             templateUrl: 'views/Fuel_Level_Tech.html'
+                  
+        })
+
+        .when('/mobileye', {
+            templateUrl: 'views/MobileyeReport.html'
                   
         })
 

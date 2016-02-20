@@ -1,5 +1,5 @@
 <div class="row">
-    <h3 class="col-md-12">Satcom Iridium Report</h3>
+    <h3 class="col-md-12">Mobileye Report</h3>
 </div>
 <br/>
 <section>
@@ -69,7 +69,7 @@
         </div>
         
         <div class="col-md-offset-11">
-            <md-button class="md-raised md-primary" ng-click="getSatcom(vehiclesSelect.id)">View Report</md-button>
+            <md-button class="md-raised md-primary" ng-click="getMobileye(vehiclesSelect.id)">View Report</md-button>
         </div>
     </div>
 </section>
@@ -113,7 +113,7 @@
                             <th><strong>From:</strong></th>
                             <th><strong>To:</strong></th>
                             <th><strong>Total Days</strong></th>
-                            <th><strong>Satcom Events</strong></th>
+                            <th><strong>Mobileye Events</strong></th>
                             <th><strong>Average Events</strong></th>
                             <th><strong>Average Delay</strong></th>
                     </tr>
@@ -149,7 +149,6 @@
                         </th>
                         <th>Speed</th>
                         <th>Event</th>
-                        <th>Satcom IMEI</th>
                         <th>Syrus IMEI</th>
                         <th>Valid Position</th>
                     </tr>
@@ -164,7 +163,6 @@
                         <td><a href="{{items.address}}" target="_blank">{{items.location}}</a></td>
                         <td>{{items.speed}} {{speedUnit.speed}}</td>
                         <td>{{items.labelDesc}}</td>
-                        <td>{{items.ii}}</td>
                         <td>{{items.device_id}}</td>
                         <td>{{items.valid_position}}</td>
                     </tr>

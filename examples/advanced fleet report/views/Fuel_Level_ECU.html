@@ -1,33 +1,69 @@
 <div>
     <div class="row">
-        <h3 class="col-md-4 col-md-offset-1">Fuel Level ECU</h3>
+        <h3 class="col-md-12">Fuel Level ECU</h3>
     </div>
     <br/>
     <section>
         <div class="row" layout-wrap ng-cloak>
             <div class="col-sm-12">
                 <div class="col-md-4 col-sm-2">
-                    <md-autocomplete ng-disabled="mc.isDisabled" md-no-cache="mc.noCache" md-selected-item="mc.selectedItem" md-search-text-change="mc.searchTextChange(mc.searchText)" md-search-text="mc.searchText" md-selected-item-change="mc.selectedItemChange(item)" md-items="item in mc.querySearch(mc.searchText)" md-item-text="item.name" md-min-length="0" placeholder="Select a Vehicle" md-menu-class="autocomplete-custom-template">
-                        <md-item-template>
-                            <span class="item-title">
-                        <md-icon md-svg-icon="img/icons/truck_icon.svg"></md-icon>
-                        <span><strong> {{item.name}} </strong></span>
-                            </span>
-                            <span class="item-metadata">
-                        <span class="item-metastat" layout-padding>
-                            <strong>IMEI: </strong>{{item.device}}
+                    <md-autocomplete 
+                        ng-disabled="mc.isDisabled" 
+                        md-no-cache="mc.noCache" 
+                        md-selected-item="mc.selectedItem"
+                        md-search-text="mc.searchText" 
+                        md-selected-item-change="mc.selectedItemChange1(item)" 
+                        md-items="item in data_VG.groups | filter: mc.searchText" 
+                        md-item-text="item.name" 
+                        md-min-length="0" 
+                        placeholder="Select a Group" 
+                        md-menu-class="autocomplete-custom-template">
+                    <md-item-template>
+                        <span class="item-title">
+                    <span><strong> {{item.name}} </strong></span>
                         </span>
-                            <span class="item-metastat" style="font-weight:light;">
-                            <strong>ID: </strong>{{item.id}}
+                        <span class="item-metadata">
+                    <span class="item-metastat" layout-padding>
+                        <strong>Company: </strong>{{item.company_name}}
+                    </span>
+                        <span class="item-metastat" style="font-weight:light;">
+                        <strong>ID: </strong>{{item.id}}
+                    </span>
                         </span>
-                            </span>
-                        </md-item-template>
-                    </md-autocomplete>
+                    </md-item-template>
+                </md-autocomplete>
+            </div>
+            <div class="col-md-4 col-sm-2"> 
+                <md-autocomplete 
+                        ng-disabled="data_VG.vehicles.length == 0" 
+                        md-no-cache="mc.noCache" 
+                        md-selected-item="mc.selectedItem1"
+                        md-search-text="mc.searchText1"
+                        md-selected-item-change="mc.selectedItemChange(vehicle)" 
+                        md-items="vehicle in data_VG.vehicles | filter : mc.searchText1" 
+                        md-item-text="vehicle.name" 
+                        md-min-length="0" 
+                        placeholder="Select a Vehicle">
+                    <md-item-template>
+                        <span class="item-title">
+                    <md-icon md-svg-icon="img/icons/truck_icon.svg"></md-icon>
+                    <span><strong> {{vehicle.name}} </strong></span>
+                        </span>
+                        <span class="item-metadata">
+                    <span class="item-metastat" layout-padding>
+                        <!-- <strong>IMEI: </strong>{{vehicle.device}} -->
+                    </span>
+                        <span class="item-metastat" style="font-weight:light;">
+                        <strong>ID: </strong>{{vehicle.id}}
+                    </span>
+                        </span>
+                    </md-item-template>
+                </md-autocomplete>
                 </div>
-                <div class="col-xs-6 col-sm-3">
+                <div class="col-xs-4 col-sm-2">
                     <md-datepicker ng-model="dates.begin" md-placeholder="Date" md-max-date="currentDate"></md-datepicker>
                 </div>
-                <div class="col-xs-6 col-sm-3">
+                <div class="col-xs-4 col-sm-2">
                     <md-datepicker ng-model="dates.end" md-placeholder="To" md-max-date="currentDate"></md-datepicker>
                 </div>
             </div>
@@ -46,17 +82,12 @@
                         </md-select>
                     </md-input-container>
                 </div>
-                <div class="col-xs-6 col-sm-4">
-                    <md-button class="md-raised md-primary" ng-click="viewGraphReportECU(vehiclesSelect.id)">View Chart</md-button>
+                <div class="col-md-offset-11">
+                    <md-button class="md-raised md-primary" ng-click="viewGraphReportECU(vehiclesSelect.id)">View Report</md-button>
                 </div>
             </div>
         </div>
     </section>
-    <!--  <br/>
-    <div class="col-md-6 col-md-offset-4" ng-show="loading">
-        <md-progress-circular md-mode="indeterminate" md-diameter="60"></md-progress-circular>
-    </div>
-    <br/> -->
     <p ng-if="reportECU.length != 0" class="title h4" style="text-align: center;"> {{vehiclesSelect.name}} Daily Fuel Level Graph </p>
     <p ng-if="reportECU.length == 0" class="title h4" style="text-align: center;"> No Data </p>
     <nvd3 ng-if="reportECU.length != 0" options="options_linePlusBar" data="data" class="with-3d-shadow with-transitions"></nvd3>
@@ -106,6 +137,7 @@
                 </div>
             </div>
         </div>
-        <h4 ng-show="!ecutable"> No data for resume  in the table </h4>
+        <div class="col-md-12" ng-show="!ecutable"><h4><strong> The trips are not enabled for this vehicle. </strong></h4></div>
+        <!-- <h4 ng-show="!ecutable"> The trips are not enabled for this vehicle.</h4> -->
     </section>
 </div>
