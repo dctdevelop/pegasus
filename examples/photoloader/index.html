@@ -64,7 +64,7 @@
 							<td>{{log.code}}</td>
 							<td>{{log.label || 'trckpt'}}</td>
 						</tr>
-						<tr ng-if='log.pi || log.label=="photo"'>
+						<tr ng-if='log.pi || log.label=="photo" || log.has_photo>0'>
 							<td colspan='5';>
 								<button class='btn btn-warning' ng-click="load_photo(log)">photo_available!</button>
 								<img ng-repeat-start="photo in log.photo_data.photos" ng-if="photo.status_no == 4" ng-src="data:image/jpeg;base64, {{photo.b64data}}" style='width:100%'>
