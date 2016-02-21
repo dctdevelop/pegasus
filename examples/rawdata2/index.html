@@ -28,6 +28,7 @@
             <div class="col-xs-12 col-md-4 col-md-offset-4">
                 <form class="form-horizontal" role="form">
                     <div class="form-group">
+                        <div class="col-xs-12" style="height:150px;"></div>
                         <label for="inputEmail3" class="col-sm-2 control-label">Username</label>
                         <div class="col-sm-10">
                             <input type="text" class="form-control" id="inputEmail3" placeholder="Email" ng-model='auth.username'>
@@ -252,9 +253,9 @@
                 from = from_date.getFullYear()+'/'+(from_date.getMonth()+1)+'/'+from_date.getDate()
                 to = to_date.getFullYear()+'/'+(to_date.getMonth()+1)+'/'+to_date.getDate()
                 request = {
-                    vids : $scope.selected_vehicle.id,
-                    genevcodes : [2,3],
-                    evfields : "io_ign,mph,code,lat,lon,vo,event_time",
+                    vehicles : $scope.selected_vehicle.id,
+                    codes : [2,3],
+                    fields : "io_ign,mph,code,lat,lon,vo,event_time",
                     from : from,
                     to : to
                 }
