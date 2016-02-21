@@ -1,4 +1,4 @@
-socket = io('/socket')
+socket = io('https://live.pegasusgateway.com/socket')
 window.socket = socket
 
 app = angular.module('livecomms', [])

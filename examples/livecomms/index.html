@@ -37,8 +37,8 @@
 					  		Sign in
 					  	</button>
 					</form>
-					<h1 class='text-danger'>{{error}}</h1>
-					<h1 class='text-info'>{{message}}</h1>
+					<h5 class='text-danger'>{{error}}</h5>
+					<h5 class='text-info' style="overflow:auto;">{{message}}</h5>
 					<input type="text" class="form-control" id="exampleInputPassword3" placeholder="Search" ng-model='_filter'>
 					<button class="btn btn-info" ng-click="listen('all')" >All</button>
 					<button class="btn btn-danger" ng-click="stop('all')">Stop All</button>
@@ -64,7 +64,7 @@
 						<tr ng-repeat-start="log in logs" ng-click=''>
 							<td>{{log.vid}}</td>
 							<td>{{log.event_time}}</td>
-							<td>{{log.event_type}}</td>
+							<td>{{log.type}}</td>
 							<td>{{log.code}}</td>
 							<td>{{log.evlabel || 'trckpt'}}</td>
 						</tr>
