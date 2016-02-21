@@ -30,6 +30,8 @@ app.controller "MainCtrl", ($scope, $http)->
 	}
 
 	socket.on '_authenticated', (message)->
+		console.log message
+		$scope.vehicles = message.vehicles
 		socket.emit("vehicle:list")
 		return
 
@@ -91,7 +93,7 @@ app.controller "MainCtrl", ($scope, $http)->
 			out: out
 			state: state
 		}
-		$http.post $scope.auth.pegasus+"/api/v0/vehicles/"+$scope.ios.vid+"/remote/output", data
+		$http.post $scope.auth.pegasus+"/api/vehicles/"+$scope.ios.vid+"/remote/output", data
 		.success (data)->
 			console.log data
 			$scope.alert.type="SUCCESS"
@@ -110,7 +112,7 @@ app.controller "MainCtrl", ($scope, $http)->
 			$scope.ios.vid = if $scope.ios.vid==null || $scope.ios.vid != vehicle then vehicle else $scope.ios.vid
 		else
 			console.log "Not set vehicle."
-		$http.get $scope.auth.pegasus+"/api/v0/vehicles/"+$scope.ios.vid+"/remote/state"
+		$http.get $scope.auth.pegasus+"/api/vehicles/"+$scope.ios.vid+"/remote/state"
 		.success (data)->
 			$scope.ios.io_pwr= data.ios.io_pwr
 			$scope.ios.io_ign= data.ios.io_ign
@@ -142,7 +144,7 @@ app.controller "MainCtrl", ($scope, $http)->
 		$scope.listening = []
 
 		$scope.message = "Connecting to Gateway"
-		$http.post $scope.auth.pegasus+"/api/v0/login", $scope.auth
+		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
 		.success (data)->
 			$scope.message = "Succesfully connected, establishing live communications"
 			$scope.token = data.auth
