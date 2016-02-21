@@ -99,7 +99,7 @@ Pegasus API - sample one-page-app.
                         <th>Type</th>
                         <th>Label</th>
                         <th>Position</th>
-                        <th>device id</th>
+                        <th>Device IMEI</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -197,6 +197,7 @@ Pegasus API - sample one-page-app.
                     headers:{Authenticate:token},
                     url: source+"/rawdata",
                     success: function(data){
+                        console.log(data);
                         $.each(data.events, function(key, item){
                             var $tr = $('<tr/>');
                             var $vid = $('<td/>').html(item.vid);
@@ -218,7 +219,7 @@ Pegasus API - sample one-page-app.
                             var $position = $('<td/>').append($a);
                             $tr.append($position);
 
-                            var $device = $('<td/>').html(item.id);
+                            var $device = $('<td/>').html(item.device_id);
                             $tr.append($device);
 
                             $tbody.append($tr);
