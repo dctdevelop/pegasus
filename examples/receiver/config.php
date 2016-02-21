@@ -23,16 +23,7 @@ define('DB_TABLE_NAME', 'PEGASUS_TEST');
 	Define the protocol your forwarder is configured with
 	RPC or JSON
 */
-define('PEGASUS_PROTOCOL', RPC);
-
-
-
-
-
-
-
-
-
+define('PEGASUS_PROTOCOL', JSON);
 
 
 
