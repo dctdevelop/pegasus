@@ -15,13 +15,16 @@ app.controller "MainCtrl", ($scope, $http)->
 	$scope.listening = []
 	$scope.pendings = []
 
-	socket.on '_authenticated', (message)->
-		socket.emit("vehicle:list")
+	socket.on '_authenticated', (data)->
+		console.log data
+		$scope.vehicles = data.vehicles
+		$scope.$apply()
+		socket.emit("resources")
 		return
 
 	socket.on '_error', (message)->
 		console.error message
-		$scope.error = error
+		$scope.error = message
 		$scope.$apply()
 		return
 
@@ -31,15 +34,18 @@ app.controller "MainCtrl", ($scope, $http)->
 		$scope.$apply()
 		return
 
-	socket.on 'vehicle:list', (vehicles)->
-		console.log vehicles
-		$scope.vehicles = vehicles
-		$scope.$apply()
+	socket.on 'resources', (resources)->
+		console.log resources
+		# $scope.vehicles = vehicles
+		# $scope.$apply()
 		return
 
-	socket.on 'events', (events)->
+	socket.on 'events', (envelope)->
+		console.log envelope
 		victim = angular.element(document.getElementById('scrollme'))[0]
 		victim.scrollTop = victim.scrollHeight+10000
+		events = envelope.payload
+
 		events.map (ev)->
 			console.log ev
 			#
@@ -103,8 +109,9 @@ app.controller "MainCtrl", ($scope, $http)->
 		else
 			$scope.listening.push(vehicle)
 
-		console.log('emitting listen to server', vehicle)
-		socket.emit 'listen:vehicles', vehicle
+		envelope = {namespace:"vehicle-events", objects: vehicle}
+		console.log('emitting listen to server', envelope)
+		socket.emit 'listen', envelope
 		return
 
 	$scope.stop = (vehicle)->
@@ -124,9 +131,9 @@ app.controller "MainCtrl", ($scope, $http)->
 		$scope.listening = []
 
 		$scope.message = "Connecting to Gateway"
-		$http.post $scope.auth.pegasus+"/api/v0/login", $scope.auth
+		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
 		.success (data)->
-			$scope.message = "Succesfully connected, establishing live communications"
+			$scope.message = "Successfully connected, establishing live communications"
 			$scope.token = data.auth
 			$http.defaults.headers.common.Authenticate = data.auth
 			connect()
