@@ -3,7 +3,7 @@
 app = angular.module('tripsApp', ["ui.bootstrap"])
 app.controller "MainCtrl", ($scope, $http)->
     $scope.pegasus = {
-        url:"https://dev.pegasusgateway.com/api"
+        url:"https://pegasus1.pegasusgateway.com/api"
         username:"developer@digitalcomtech.com"
         password: "dctdevelop"
     }
