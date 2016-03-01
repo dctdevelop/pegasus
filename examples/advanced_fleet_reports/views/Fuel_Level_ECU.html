@@ -71,7 +71,7 @@
                 <div class="col-xs-4 col-sm-2">
                     <md-input-container class="md-block" flex-gt-xs>
                         <label> </label>
-                        <input type="number" ng-model="sizeLiter.liter" placeholder="Tank Size" min=0>
+                        <input type="number" ng-model="sizeLiter.liter" placeholder="Tank Size ({{fuelunits}})" min=0>
                     </md-input-container>
                 </div>
                 <div class="col-xs-4 col-sm-3">
@@ -92,7 +92,7 @@
     <p ng-if="reportECU.length == 0" class="title h4" style="text-align: center;"> No Data </p>
     <nvd3 ng-if="reportECU.length != 0" options="options_linePlusBar" data="data" class="with-3d-shadow with-transitions"></nvd3>
     <section ng-show="flag_report" ng-cloak>
-        <div class="row" ng-show="ecutable">
+        <div class="row" ng-show="ecutable">            
             <div class="col-md-12">
                 <div class="md-whiteframe-z1 layout-padding ng-scope layout-column">
                     <table class="table">
@@ -114,7 +114,7 @@
                                 <th>Ignition On</th>
                                 <th>Idle</th>
                                 <th>Distance ({{distance}})</th>
-                                <th>{{volume}} Consumed</th>
+                                <th>Fuel Consumed</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -130,14 +130,15 @@
                                 <td>{{items.ign_trip}}</td>
                                 <td>{{items.idle_trip}}</td>
                                 <td>{{items.distance | number:2}}</td>
-                                <td>{{items.ecu_tfuel | number:1}}</td>
+                                <td ng-if="items.fuel_consumed == '---'">{{items.fuel_consumed}}</td>
+                                <td ng-if="items.fuel_consumed != '---'">{{items.fuel_consumed | number: 2}} {{volume}}</td>  
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
-        <div class="col-md-12" ng-show="!ecutable"><h4><strong> The trips are not enabled for this vehicle. </strong></h4></div>
+        <div class="col-md-12" ng-show="!ecutable"><h4><strong> {{noTrips}} </strong></h4></div>
         <!-- <h4 ng-show="!ecutable"> The trips are not enabled for this vehicle.</h4> -->
     </section>
 </div>

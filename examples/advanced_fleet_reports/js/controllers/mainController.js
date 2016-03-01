@@ -4,9 +4,10 @@ if (serv == "") {
     var serverArr = serverAux.split('/')
 
     if (serverArr[2] == "localhost:8080") {
-        var server = 'https://pegasus1.pegasusgateway.com/api/';
+        // var server = 'https://pegasus1.pegasusgateway.com/api/';
         // var server = 'https://www.track.kabzy.com/api/'
         // var server =  'https://gps.geoaustralchile.cl/api/'
+        var server = 'https://plataforma.gpstelematica.com.mx/api/'
     }
 
     if (serverArr[2] == "cdn2.pegasusgateway.com") {
@@ -405,6 +406,8 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
                     $scope.unitMeasure = "mile";
 
                 };
+
+                $scope.fuelunits = data.prefs.fuelunits;
             })
     }
 
@@ -1299,7 +1302,9 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
         $scope.sizeLiter = {
             liter: null
         };
+
         self.clear();
+        $scope.data = [];
     }
 
     $scope.mileageReport = function() {
@@ -1386,26 +1391,24 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
                 axisLabelDistance: 12
             },
             y2Axis: {
-                axisLabel: $scope.volume
+                axisLabel: $scope.volume                
             },
-            useInteractiveGuideline: false,
+            useInteractiveGuideline: true,
             interactive: true,
             tooltip: {
               contentGenerator: 
               function(d) {
-                if (($scope.sizeLiter.liter === 0) || ($scope.sizeLiter.liter === null)) {
-                    return '<table><thead><tr><th></th></tr></thead><tbody><tr><th>Fuel Percent ' + JSON.stringify(d.series[0].value) + '%</th></tr></tbody></table>';                    
-                }
-                else{
                     if (d.series[0].color === 'red' ){
-                       return '<table><thead><tr><th></th></tr></thead><tbody><tr><th>Gallons ' + JSON.stringify(d.series[0].value) + '</th></tr></tbody></table>';                     
-                      
+                        if ($scope.volume === 'Liter') {
+                            return '<table><thead><tr><th></th></tr></thead><tbody><tr><th>Liter ' + JSON.stringify(d.series[0].value) + '</th></tr></tbody></table>';                     
+                       }
+                       else{
+                            return '<table><thead><tr><th></th></tr></thead><tbody><tr><th>Gallons ' + JSON.stringify(d.series[0].value) + '</th></tr></tbody></table>';                     
+                        }
                     }
                     else{
-                       return '<table><thead><tr><th>' + d3.time.format('%b %d %X')(new Date(d.data.x)) +'</th></tr></thead><tbody><tr><th>Fuel Percent ' + JSON.stringify(d.series[0].value) + '%</th></tr></tbody></table>';
-                    }                   
-                }
-                    
+                        return '<table><thead><tr><th>' + d3.time.format('%b %d %X')(new Date(d.data.x)) +'</th></tr></thead><tbody><tr><th>Fuel Percent ' + JSON.stringify(d.series[0].value) + '%</th></tr></tbody></table>';
+                    }  
               }
             }
         }        
@@ -1421,8 +1424,9 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
         self.count = 0;
         self.hide = false;
         $scope.selectedTime = $scope.frequencys[0].value;
-        var cont1 = 0;
         $scope.rep = 0;
+        $scope.fuel_consumed = 0;
+        var consumed = 0;
 
         if (id == null) {
             $scope.alert = 'You must specify a vehicle.';
@@ -1438,8 +1442,11 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
             $scope.alert = 'The start date must be less than the end date.';
             $scope.showAlert();
             $scope.dates.end = new Date();
-        } else {
-
+        } 
+        if ($scope.sizeLiter.liter == null || $scope.sizeLiter.liter == 0) {
+            $scope.alert = 'You must specify tank size.';
+            $scope.showAlert();
+        }else {
             var from = $scope.dates.begin.getFullYear() + '-' + ($scope.dates.begin.getMonth() + 1) + '-' + $scope.dates.begin.getDate();
             var to = $scope.dates.end.getFullYear() + '-' + ($scope.dates.end.getMonth() + 1) + '-' + ($scope.dates.end.getDate());
 
@@ -1450,13 +1457,13 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
                 }
             }
 
-            $http.get(server + "rawdata?vehicles=" + id + "&fields=io_ign,fuel_level_percentage:@ecu_fuel_level_real/10,event_hour,event_min,total_fuel_consumed:@ecu_tfuel,ecu_fuel_level_real_flag&from=" + from + "T00:00:00&to=" + to + "T23:59:59&volume=user&filter=(io_ign%20%3E%200%20and%20ecu_fuel_level_real_flag%20==%20%22T%22)")
-
+        $http.get(server + "rawdata?vehicles=" + id + "&fields=io_ign,fuel_level_percentage:@ecu_fuel_level_real/10,ecu_fuel_level_real_flag&from=" + from + "T00:00:00&to=" + to + "T23:59:59&volume=user&filter=(io_ign%20%3E%200%20and%20ecu_fuel_level_real_flag%20==%20%22T%22%20and%20fuel_level_percentage%20%3E%200 and fuel_level_percentage<100)")
             .success(function(data) {
                     $scope.reportECU = data.events;
                     var aux2 = data.units.volume;
                     $scope.volume = aux2.charAt(0).toUpperCase() + aux2.slice(1);
-                    $scope.distance = data.units.distance;  
+                    $scope.distance = data.units.distance; 
+                    
 
                     if ($scope.selectedTime != 0) {
                         var aux = new Date($scope.reportECU[0].event_time);
@@ -1475,7 +1482,6 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
                             } else {
                                 average1 = Math.floor(sum / incr);
                                 var aux2 = new Date($scope.reportECU[i - incr].event_time).getTime();
-                                // var aux3 = aux2.getTime();
                                 $scope.percentGraph.push([aux2, average1]);
                                 incr = 0;
                                 sum = 0;
@@ -1497,7 +1503,6 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
                     }
 
                     if ($scope.sizeLiter.liter != null) {
-
                         for (var i = 0; i < $scope.percentGraph.length; i++) {
                             aux1 = $scope.sizeLiter.liter * $scope.percentGraph[i][1];
                             var average2 = Math.floor(aux1 / 100);
@@ -1546,7 +1551,6 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
                         });
                     }
 
-
                     $scope.ecuResumen(id);
                     $scope.loadReport();
 
@@ -1561,26 +1565,145 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
     $scope.ecuResumen = function(id) {
         var from = $scope.dates.begin.getFullYear() + '-' + ($scope.dates.begin.getMonth() + 1) + '-' + $scope.dates.begin.getDate();
         var to = $scope.dates.end.getFullYear() + '-' + ($scope.dates.end.getMonth() + 1) + '-' + ($scope.dates.end.getDate());
+        var aux=[];
+        var aux1=[];
+        var array_aux=[];
+        var liter = 0;
+        $scope.fuel_consumed_trips = 0;
+        var max=0;
+        var min=0;
+        var average = 0;
+        var average1 = 0;
+        var average2 = 0;
+        var volume = 0;
 
         $http.get(server + "trips?vehicles=" + id + "&from_time=" + from + "T00:00:00&to_time=" + to + "T23:59:59&distance=user")
             .success(function(data) {
-                $scope.ecutrips = data;
+                // $scope.ecutrips = data;
+                array_aux = data;
 
-                for (var i = 0; i < $scope.ecutrips.length; i++) {
-                    $scope.ecutrips[i].start_time = $scope.ecutrips[i].start_time.substring(0, 10) + "T" + $scope.ecutrips[i].start_time.substring(11, 19);
-                    if ($scope.ecutrips[i].end_time != null) {
-                        $scope.ecutrips[i].end_time = $scope.ecutrips[i].end_time.substring(0, 10) + "T" + $scope.ecutrips[i].end_time.substring(11, 19)
+                if (array_aux.length != 0) {                    
+                    var from_date = $scope.yyyymmdd() + "T00:00:00";
+                    for (var i = 0; i < array_aux.length; i++) {
+                        start  = array_aux[i].start_time.substring(0, 10) + "T" + array_aux[i].start_time.substring(11, 19);
+                        if((array_aux[i].duration > 60) && (start > from_date)){
+                            $scope.ecutrips.push(array_aux[i]);
+                        }                    
                     }
 
-                    $scope.ecutrips[i]["duration_trip"] = $scope.convertSec_time($scope.ecutrips[i].duration);
-                    $scope.ecutrips[i]["ign_trip"] = $scope.convertSec_time($scope.ecutrips[i].dev_ign);
-                    $scope.ecutrips[i]["idle_trip"] = $scope.convertSec_time($scope.ecutrips[i].idle);
-                    
-                   }; 
+                    for (var i = 0; i < $scope.ecutrips.length; i++) {
+                        $scope.ecutrips[i].start_time = $scope.ecutrips[i].start_time.substring(0, 10) + "T" + $scope.ecutrips[i].start_time.substring(11, 19);
+                        if ($scope.ecutrips[i].end_time != null) {
+                            $scope.ecutrips[i].end_time = $scope.ecutrips[i].end_time.substring(0, 10) + "T" + $scope.ecutrips[i].end_time.substring(11, 19)
+                        }
 
-                if ($scope.ecutrips.length == 0) {
-                    $scope.ecutable = false;
-                } else {
+                        $scope.ecutrips[i]["duration_trip"] = $scope.convertSec_time($scope.ecutrips[i].duration);
+                        $scope.ecutrips[i]["ign_trip"] = $scope.convertSec_time($scope.ecutrips[i].dev_ign);
+                        $scope.ecutrips[i]["idle_trip"] = $scope.convertSec_time($scope.ecutrips[i].idle);
+                        
+                       }
+
+                       for (var i = 0; i < $scope.ecutrips.length; i++){
+                           $scope.fuel_consumed_trips = 0 
+                           aux=[];  
+                            if($scope.ecutrips[i].ignition > 600){
+                                for (var j = 0; j < $scope.reportECU.length; j++){
+                                    if (($scope.ecutrips[i].start_time <= $scope.reportECU[j].event_time) && ($scope.ecutrips[i].end_time >= $scope.reportECU[j].event_time)){                                                                          
+                                        aux.push($scope.reportECU[j].fuel_level_percentage);
+                                        liter_level = aux[0];
+                                        aux1 = [aux[0]]                                  
+                                    }
+
+                                }
+
+                                if (aux.length <= 5) {
+                                    $scope.ecutrips[i]["fuel_consumed"] = "---";
+                                } 
+                                
+
+                                if (aux.length > 5) {
+                                    for (var x = 1; x < aux.length; x++) {
+                                        liter = Math.abs(liter_level - aux[x]);
+
+                                        if (liter < 10) {
+                                            aux1.push(aux[x]);
+                                            liter_level = aux[x];
+                                        }
+                                        else{
+                                            if (aux1.length > 1) {
+                                                average = Math.floor((aux1.length * 10) / 100);
+                                                cont1 = 0;
+                                                cont2 = aux1.length-1;
+                                                if (average > 0) {  
+                                                    while(average > cont1){
+                                                        average1 = average1  + aux1[cont1];
+                                                        average2 = average2  + aux1[cont2];
+                                                        cont1+=1;
+                                                        cont2-=1
+                                                    }
+                                                    max = average1 / average;
+                                                    min = average2 / average;                                                    
+                                                }
+                                                else{
+                                                    max = aux1[0];
+                                                    min = aux1[aux1.length-1];
+                                                }                                      
+
+                                                volume = (Math.abs(max-min) * $scope.sizeLiter.liter) / 100;
+                                                $scope.fuel_consumed_trips = $scope.fuel_consumed_trips + volume; 
+                                                liter_level = aux[x];                                                                                        
+                                                aux1=[]; 
+                                                average= average1 = average2 = 0; 
+                                                max = min = 0;                                              
+                                            }
+                                            else{
+                                                liter_level = aux[x];
+                                                aux1=[];
+                                            }
+                                        }
+                                    }
+
+                                    if (aux1.length > 1) {
+                                        average = Math.floor((aux1.length * 10) / 100);
+                                        cont1 = 0;
+                                        cont2 = aux1.length-1;
+                                        if (average > 0) {  
+                                            while(average > cont1){
+                                                average1 = average1  + aux1[cont1];
+                                                average2 = average2  + aux1[cont2];
+                                                cont1+=1;
+                                                cont2-=1
+                                            }
+                                        }
+
+                                        else{
+                                            average = 1;
+                                            average1 = aux1[0];
+                                            average2 = aux1[aux1.length-1];
+                                        }
+
+                                        max = average1 / average;
+                                        min = average2 / average;                                       
+
+                                    } 
+
+
+                                    volume = (Math.abs(max-min) * $scope.sizeLiter.liter) / 100;
+                                    $scope.ecutrips[i]["fuel_consumed"] = $scope.fuel_consumed_trips + volume;  
+                                    average= average1 = average2 = 0;                                                                         
+                                    aux1=[];
+                                    
+                                }  
+                            }
+                        
+                            else{
+                                $scope.ecutrips[i]["fuel_consumed"] = "---";
+                            } 
+                       
+                        }
+
+
+
                     $scope.ecutable = true;
 
                     if ($scope.ecutrips.length < 200) {
@@ -1592,9 +1715,13 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
                     if (300 < $scope.ecutrips.length) {
                         $scope.rep = 4
                     }
-                }
 
-                $scope.consultECU();
+                    $scope.consultECU();
+                }
+                else{
+                    $scope.noTrips = 'The trips are not enabled for this vehicle.';
+                    $scope.ecutable = false;
+                }
 
             })
             .error(function(data, s, h) {
@@ -1648,20 +1775,29 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
         }
     }
 
-    $scope.size_tank = function(id){
-        // self.size_tank = true;
-        for (var i = 0; i < $scope.vehicles.length; i++) {
-            if ($scope.vehicles[i].id == id) {
-                $scope.sizeLiter.liter = $scope.vehicles[i].info.sizetank;
-                if ($scope.sizeLiter.liter == undefined || $scope.sizeLiter.liter == null) {
-                    $scope.sizeLiter.liter = 700;
-                    // self.size_tank = false;
-                }
-            }
-        }
+    // $scope.size_tank = function(id){
+    //     // self.size_tank = true;
+    //     for (var i = 0; i < $scope.vehicles.length; i++) {
+    //         if ($scope.vehicles[i].id == id) {
+    //             $scope.sizeLiter.liter = $scope.vehicles[i].info.sizetank;
+    //             if ($scope.sizeLiter.liter == undefined || $scope.sizeLiter.liter == null) {
+    //                 $scope.sizeLiter.liter = 700;
+    //                 // self.size_tank = false;
+    //             }
+    //         }
+    //     }
 
-        return $scope.sizeLiter.liter; 
-    }
+    //     return $scope.sizeLiter.liter; 
+    // }
+
+    $scope.yyyymmdd = function() {         
+                                    
+            var yyyy = $scope.dates.begin.getFullYear().toString();                                    
+            var mm = ($scope.dates.begin.getMonth()+1).toString(); // getMonth() is zero-based         
+            var dd  = $scope.dates.begin.getDate().toString();             
+                                
+            return yyyy + '-' + (mm[1]?mm:"0"+mm[0]) + '-' + (dd[1]?dd:"0"+dd[0]);
+       }; 
 
     $scope.viewGraphReportTech = function(id) {
         $scope.reportTech = [];
@@ -1675,10 +1811,14 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
         $scope.rep = 0;
         $scope.techtrips=[];
         $scope.selectedTime = $scope.frequencys[0].value;
-        $scope.tank = $scope.size_tank(id);
-        // if ($scope.tank == undefined) {
-        //     $scope.sizeLiter.liter = 0;
-        // }
+        var liter=0;
+        var liter_level=[];
+        $scope.fuel_consumed = 0;
+        var aux = [];
+        // $scope.tank = $scope.size_tank(id);
+        // // if ($scope.tank == undefined) {
+        // //     $scope.sizeLiter.liter = 0;
+        // // }
 
         if (id == null) {
             $scope.alert = 'You must specify a vehicle.';
@@ -1713,14 +1853,12 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
             var from = $scope.dates.begin.getFullYear() + '-' + ($scope.dates.begin.getMonth() + 1) + '-' + $scope.dates.begin.getDate();
             var to = $scope.dates.end.getFullYear() + '-' + ($scope.dates.end.getMonth() + 1) + '-' + ($scope.dates.end.getDate());
 
-            $http.get(server + "rawdata?vehicles=" + id + "&fields=fuel_level:@tec_fn/10,event_hour,event_min,tec_st,io_ign&from=" + from + "T00:00:00&to=" + to + "T23:59:59&volume=user&distance=user&filter=(io_ign>0%20and%20tec_st>0)")
+            $http.get(server + "rawdata?vehicles=" + id + "&fields=fuel_level:@tec_fn/10,tec_st,io_ign&from=" + from + "T00:00:00&to=" + to + "T23:59:59&volume=user&distance=user&filter=(io_ign>0%20and%20tec_st>0)")
 
             .success(function(data) {
                     $scope.reportTech = data.events;
-                    var aux2 = data.units.volume;
-                    $scope.volume = aux2.charAt(0).toUpperCase() + aux2.slice(1);
+                    $scope.volume = 'Liter'
                     $scope.dist = data.units.distance;
-
 
                     if ($scope.selectedTime != 0) {
                         var aux = new Date($scope.reportTech[0].event_time);
@@ -1792,85 +1930,166 @@ app.controller('mainController', function($scope, $http, $localStorage, $locatio
     }
 
     $scope.techResumen = function(id) {
-
         var from = $scope.dates.begin.getFullYear() + '-' + ($scope.dates.begin.getMonth() + 1) + '-' + $scope.dates.begin.getDate();
-        var to = $scope.dates.end.getFullYear() + '-' + ($scope.dates.end.getMonth() + 1) + '-' + ($scope.dates.end.getDate());
-        var cont=0;
-        var aux=0;
-        var aux1=0;
-        var fuel_consumed = 0;
+        var to = $scope.dates.end.getFullYear() + '-' + ($scope.dates.end.getMonth() + 1) + '-' + $scope.dates.end.getDate();
+        var aux=[];
+        var aux1=[];
         var array_aux=[];
-
+        var liter = 0;
+        $scope.fuel_consumed_trips = 0;
+        var max=0;
+        var min=0;
+        var average = 0;
+        var average1 = 0;
+        var average2 = 0;
 
         $http.get(server + "trips?vehicles=" + id + "&from_time=" + from + "T00:00:00&to_time=" + to + "T23:59:59&distance=user")
             .success(function(data) {
                 array_aux = data;
 
-                for (var i = 0; i < array_aux.length; i++) {
-                    if(array_aux[i].duration > 60){
-                        $scope.techtrips.push(array_aux[i])
-                    }                    
-                }
-
-                for (var i = 0; i < $scope.techtrips.length; i++) {
-                    $scope.techtrips[i].start_time = $scope.techtrips[i].start_time.substring(0, 10) + "T" + $scope.techtrips[i].start_time.substring(11, 19);
-                    if ($scope.techtrips[i].end_time != null) {
-                        $scope.techtrips[i].end_time = $scope.techtrips[i].end_time.substring(0, 10) + "T" + $scope.techtrips[i].end_time.substring(11, 19)
+                if (array_aux.length != 0) {
+                    var from_date = $scope.yyyymmdd() + "T00:00:00";
+                    for (var i = 0; i < array_aux.length; i++) {
+                        start  = array_aux[i].start_time.substring(0, 10) + "T" + array_aux[i].start_time.substring(11, 19);
+                        if((array_aux[i].duration > 60) && (start > from_date)){
+                            $scope.techtrips.push(array_aux[i])
+                        }                    
                     }
 
-                    $scope.techtrips[i]["duration_trip"] = $scope.convertSec_time($scope.techtrips[i].duration);
-                    $scope.techtrips[i]["ign_trip"] = $scope.convertSec_time($scope.techtrips[i].dev_ign);
-                    $scope.techtrips[i]["idle_trip"] = $scope.convertSec_time($scope.techtrips[i].idle);
-                    
-                   } 
+                    for (var i = 0; i < $scope.techtrips.length; i++) {
+                        $scope.techtrips[i].start_time = $scope.techtrips[i].start_time.substring(0, 10) + "T" + $scope.techtrips[i].start_time.substring(11, 19);
+                        if ($scope.techtrips[i].end_time != null) {
+                            $scope.techtrips[i].end_time = $scope.techtrips[i].end_time.substring(0, 10) + "T" + $scope.techtrips[i].end_time.substring(11, 19)
+                        }
 
+                        $scope.techtrips[i]["duration_trip"] = $scope.convertSec_time($scope.techtrips[i].duration);
+                        $scope.techtrips[i]["ign_trip"] = $scope.convertSec_time($scope.techtrips[i].dev_ign);
+                        $scope.techtrips[i]["idle_trip"] = $scope.convertSec_time($scope.techtrips[i].idle);
+                        
+                       } 
+                       for (var i = 0; i < $scope.techtrips.length; i++){
+                           $scope.fuel_consumed_trips = 0 
+                           aux=[];                      
 
+                            if($scope.techtrips[i].ignition > 600){
+                                for (var j = 0; j < $scope.reportTech.length; j++){
+                                    if (($scope.techtrips[i].start_time <= $scope.reportTech[j].event_time) && ($scope.techtrips[i].end_time >= $scope.reportTech[j].event_time)){                                                                          
+                                        aux.push($scope.reportTech[j].fuel_level);
+                                        liter_level = aux[0];
+                                        aux1 = [aux[0]]                                  
+                                    }
 
-                   // $scope.reportTech;//tiene toda la data de los events
-                   // $scope.techtrips;//tiene toda la data de los trips
-
-                   for (var i = 0; i < $scope.techtrips.length; i++) {
-                        aux = $scope.reportTech[cont].fuel_level;
-                        for (var j = cont+1; j < $scope.reportTech.length; j++) {                                
-                                if (($scope.techtrips[i].start_time < $scope.reportTech[j].event_time) && ($scope.techtrips[i].end_time >= $scope.reportTech[j].event_time)) {
-                                    aux1 = $scope.reportTech[j].fuel_level;
-                                    cont+=1;
                                 }
-                                else{
-                                    fuel_consumed = aux - aux1;
-                                    $scope.techtrips[i]["fuel_consumed"] = fuel_consumed;
-                                    break;
-                                }
-                               
-                            }    
-                   }
+
+                                if (aux.length <= 5) {
+                                    $scope.techtrips[i]["fuel_consumed"] = "---";
+                                } 
+                                
+
+                                if (aux.length > 5) {
+                                    for (var x = 1; x < aux.length; x++) {
+                                        liter = (Math.abs(liter_level - aux[x]) * 100) / $scope.sizeLiter.liter;
+
+                                        if (liter < 10) {
+                                            aux1.push(aux[x]);
+                                            liter_level = aux[x];
+                                        }
+                                        else{
+                                            if (aux1.length > 1) {
+                                                average = Math.floor((aux1.length * 10) / 100);
+                                                cont1 = 0;
+                                                cont2 = aux1.length-1;
+                                                if (average > 0) {  
+                                                    while(average > cont1){
+                                                        average1 = average1  + aux1[cont1];
+                                                        average2 = average2  + aux1[cont2];
+                                                        cont1+=1;
+                                                        cont2-=1
+                                                    }
+                                                    max = average1 / average;
+                                                    min = average2 / average;                                                    
+                                                }
+                                                else{
+                                                    max = aux1[0];
+                                                    min = aux1[aux1.length-1];
+                                                }                                      
+
+                                                $scope.fuel_consumed_trips = $scope.fuel_consumed_trips + Math.abs(max-min);  
+                                                liter_level = aux[x];                                                                                        
+                                                aux1=[]; 
+                                                average= average1 = average2 = 0; 
+                                                max = min = 0;                                              
+                                            }
+                                            else{
+                                                liter_level = aux[x];
+                                                aux1=[];
+                                            }
+                                        }
+                                    }
+
+                                    if (aux1.length > 1) {
+                                        average = Math.floor((aux1.length * 10) / 100);
+                                        cont1 = 0;
+                                        cont2 = aux1.length-1;
+                                        if (average > 0) {  
+                                            while(average > cont1){
+                                                average1 = average1  + aux1[cont1];
+                                                average2 = average2  + aux1[cont2];
+                                                cont1+=1;
+                                                cont2-=1
+                                            }
+                                        }
+
+                                        else{
+                                            average = 1;
+                                            average1 = aux1[0];
+                                            average2 = aux1[aux1.length-1];
+                                        }
+
+                                        max = average1 / average;
+                                        min = average2 / average;
+                                        $scope.techtrips[i]["fuel_consumed"] = $scope.fuel_consumed_trips + Math.abs(max-min);  
+                                        average= average1 = average2 = 0;                                                                         
+                                        aux1=[];
+                                        
+                                    } 
+                                }  
+                            }
+                        
+                            else{
+                                $scope.techtrips[i]["fuel_consumed"] = "---";
+                            } 
+ 
+                        }
 
 
+                       if ($scope.techtrips.length != 0){
+                           $scope.techtable = true;
+                       }else{
+                           $scope.techtable = false;
+                       }
 
-                   // $scope.techtrips[i]["fuel_consumed"] = ;
+                       $scope.techtable = true;
 
+                       if ($scope.techtrips.length < 100) {
+                           $scope.rep = 1
+                           }
+                       if ( (100 < $scope.techtrips.length) && ($scope.techtrips.length < 300)){
+                           $scope.rep = 2
+                           }
+                       if ((300 < $scope.techtrips.length) && ($scope.techtrips.length < 500)) {
+                           $scope.rep = 4
+                           }
+                       if (500 < $scope.techtrips.length) {
+                           $scope.rep = 6
+                           }
 
-                if ($scope.techtrips.length != 0) {
-                    $scope.techtable = true;
-                }else{
-                    $scope.techtable = false;
+                       $scope.consulTech();               
+                    }
+                else{
+                   $scope.noTrips = 'The trips are not enabled for this vehicle.';
+                   $scope.techtable = false;
                 }
-
-                if ($scope.techtrips.length < 100) {
-                    $scope.rep = 1
-                    }
-                if ( (100 < $scope.techtrips.length) && ($scope.techtrips.length < 300)){
-                    $scope.rep = 2
-                    }
-                if ((300 < $scope.techtrips.length) && ($scope.techtrips.length < 500)) {
-                    $scope.rep = 4
-                    }
-                if (500 < $scope.techtrips.length) {
-                    $scope.rep = 6
-                    }
-
-                $scope.consulTech();
-
             })
             .error(function(data, s, h) {
                 console.log(data, s, h)
