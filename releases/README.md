@@ -1,11 +1,11 @@
-#Pegasus Release Notes Summary
+#Pegasus Release Notes - Summary
 
 ----
 ### 1.44.x
 Our starting point for official releases.
 
 ----
-### [1.5.2 - April 12, 2016](https://github.com/dctdevelop/pegasus/releases/1.5.2/1.5.2.release.md)
+### [1.5.2 - April 12, 2016](https://github.com/dctdevelop/pegasus/blob/master/releases/1.5.2/1.5.2.release.md)
 Marks the official support for the API.
 
 
