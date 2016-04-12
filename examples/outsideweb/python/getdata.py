@@ -109,7 +109,7 @@ if __name__ == '__main__':
 		for arg in args:
 
 			if arg.startswith("--"):
-				toks = arg.split("=")
+				toks = arg.split("=", 1)
 				query[toks[0][2:]] = toks[1]
 				continue
 
