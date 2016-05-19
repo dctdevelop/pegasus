@@ -1,4 +1,5 @@
-socket = io('/socket')
+socket = io('https://live.pegasusgateway.com/socket')
+# socket = io('/socket')
 window.socket = socket
 
 app = angular.module('livecomms', ['ngMaterial'])
@@ -105,7 +106,7 @@ app.controller "MainCtrl", ($scope, $http, $filter)->
 		$scope.listening = []
 
 		$scope.message = "Connecting to Gateway"
-		$http.post $scope.auth.pegasus+"/api/v0/login", $scope.auth
+		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
 		.success (data)->
 			$scope.message = "Succesfully connected, establishing live communications"
 			$scope.token = data.auth
