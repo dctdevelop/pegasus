@@ -1,8 +1,8 @@
-socket = io('https://live.pegasusgateway.com/socket')
+socket = io('/socket')
 window.socket = socket
 
-app = angular.module('livecomms', [])
-app.controller "MainCtrl", ($scope, $http)->
+app = angular.module('livecomms', ['ngMaterial'])
+app.controller "MainCtrl", ($scope, $http, $filter)->
 	$scope.main = "Sup"
 	$scope.auth =
 		pegasus : "https://pegasus1.pegasusgateway.com"
@@ -68,6 +68,13 @@ app.controller "MainCtrl", ($scope, $http)->
 			$scope.listen vehicle
 
 	$scope.listen = (vehicle)->
+		if $scope._filter?.length
+			filtered = $filter('filter') $scope.vehicles, $scope._filter
+			vehicle = []
+			for _f in filtered
+				continue if _f in $scope.listening
+				$scope.listening.push _f
+				vehicle.push _f
 		if vehicle is "all"
 			$scope.listening = $scope.vehicles
 		else
@@ -98,7 +105,7 @@ app.controller "MainCtrl", ($scope, $http)->
 		$scope.listening = []
 
 		$scope.message = "Connecting to Gateway"
-		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
+		$http.post $scope.auth.pegasus+"/api/v0/login", $scope.auth
 		.success (data)->
 			$scope.message = "Succesfully connected, establishing live communications"
 			$scope.token = data.auth
