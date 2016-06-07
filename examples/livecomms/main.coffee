@@ -1,9 +1,8 @@
 socket = io('https://live.pegasusgateway.com/socket')
-# socket = io('/socket')
 window.socket = socket
 
 app = angular.module('livecomms', ['ngMaterial'])
-app.controller "MainCtrl", ($scope, $http, $filter)->
+app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 	$scope.main = "Sup"
 	$scope.auth =
 		pegasus : "https://pegasus1.pegasusgateway.com"
@@ -44,17 +43,16 @@ app.controller "MainCtrl", ($scope, $http, $filter)->
 
 		namespace = envelope.namespace
 		vehicle = envelope.object
-		events = envelope.payload
 
-		victim = angular.element(document.getElementById('scrollme'))[0]
-		victim.scrollTop = victim.scrollHeight+10000
+		$scope.logs.push envelope.payload
 
-		events.map (i)->
-			console.log i
-			$scope.logs.push i
+		$timeout ()->
+			victim = angular.element(document.getElementById('scrollme'))[0]
+			victim.scrollTop = victim.scrollHeight+10000
+			return
+		, 200
 
 		$scope.$apply()
-
 		return
 
 	connect = ()->
@@ -67,6 +65,18 @@ app.controller "MainCtrl", ($scope, $http, $filter)->
 			$scope.stop vehicle
 		else
 			$scope.listen vehicle
+
+	process_cache = (events)->
+		for ev in events
+			$scope.logs.push ev
+
+		$timeout ()->
+			victim = angular.element(document.getElementById('scrollme'))[0]
+			victim.scrollTop = victim.scrollHeight+10000
+			return
+		, 200
+
+		return
 
 	$scope.listen = (vehicle)->
 		if $scope._filter?.length
@@ -82,7 +92,8 @@ app.controller "MainCtrl", ($scope, $http, $filter)->
 			$scope.listening.push(vehicle)
 
 		envelope = {namespace:"vehicle-events", objects: vehicle}
-		socket.emit 'listen', envelope
+		socket.emit 'listen', envelope, process_cache
+
 
 		console.log('emitting listen to server', envelope)
 		return
@@ -106,7 +117,7 @@ app.controller "MainCtrl", ($scope, $http, $filter)->
 		$scope.listening = []
 
 		$scope.message = "Connecting to Gateway"
-		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
+		$http.post $scope.auth.pegasus+"/api/v0/login", $scope.auth
 		.success (data)->
 			$scope.message = "Succesfully connected, establishing live communications"
 			$scope.token = data.auth
