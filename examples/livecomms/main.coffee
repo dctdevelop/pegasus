@@ -1,8 +1,8 @@
 socket = io('https://live.pegasusgateway.com/socket')
 window.socket = socket
 
-app = angular.module('livecomms', [])
-app.controller "MainCtrl", ($scope, $http)->
+app = angular.module('livecomms', ['ngMaterial'])
+app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 	$scope.main = "Sup"
 	$scope.auth =
 		pegasus : "https://pegasus1.pegasusgateway.com"
@@ -43,17 +43,16 @@ app.controller "MainCtrl", ($scope, $http)->
 
 		namespace = envelope.namespace
 		vehicle = envelope.object
-		events = envelope.payload
 
-		victim = angular.element(document.getElementById('scrollme'))[0]
-		victim.scrollTop = victim.scrollHeight+10000
+		$scope.logs.push envelope.payload
 
-		events.map (i)->
-			console.log i
-			$scope.logs.push i
+		$timeout ()->
+			victim = angular.element(document.getElementById('scrollme'))[0]
+			victim.scrollTop = victim.scrollHeight+10000
+			return
+		, 200
 
 		$scope.$apply()
-
 		return
 
 	connect = ()->
@@ -67,14 +66,34 @@ app.controller "MainCtrl", ($scope, $http)->
 		else
 			$scope.listen vehicle
 
+	process_cache = (events)->
+		for ev in events
+			$scope.logs.push ev
+
+		$timeout ()->
+			victim = angular.element(document.getElementById('scrollme'))[0]
+			victim.scrollTop = victim.scrollHeight+10000
+			return
+		, 200
+
+		return
+
 	$scope.listen = (vehicle)->
+		if $scope._filter?.length
+			filtered = $filter('filter') $scope.vehicles, $scope._filter
+			vehicle = []
+			for _f in filtered
+				continue if _f in $scope.listening
+				$scope.listening.push _f
+				vehicle.push _f
 		if vehicle is "all"
 			$scope.listening = $scope.vehicles
 		else
 			$scope.listening.push(vehicle)
 
 		envelope = {namespace:"vehicle-events", objects: vehicle}
-		socket.emit 'listen', envelope
+		socket.emit 'listen', envelope, process_cache
+
 
 		console.log('emitting listen to server', envelope)
 		return
@@ -98,7 +117,7 @@ app.controller "MainCtrl", ($scope, $http)->
 		$scope.listening = []
 
 		$scope.message = "Connecting to Gateway"
-		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
+		$http.post $scope.auth.pegasus+"/api/v0/login", $scope.auth
 		.success (data)->
 			$scope.message = "Succesfully connected, establishing live communications"
 			$scope.token = data.auth
