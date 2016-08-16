@@ -28,7 +28,7 @@ Breaking changes may occurr on ```mayor``` and ```minor``` numbers. ```Patches``
 - HotFix2 (https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.1/1.6.1-hf2.release.md)
 
 ---
-### [1.6.2 - RC1, 2016](https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.2/1.6.2.release.md)
+### [1.6.2 - August 16, 2016](https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.2/1.6.2.release.md)
 
 
 ---
