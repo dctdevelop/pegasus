@@ -48,14 +48,14 @@ Bug fixes
 
 
 
-### [1.6.0 - April 20, 2016](https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.0.release.md)
+#### [1.6.0 - April 20, 2016](https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.0.release.md)
 
 ----
-### [1.5.2 - April 12, 2016](https://github.com/dctdevelop/pegasus/blob/master/releases/1.5.2.release.md)
+#### [1.5.2 - April 12, 2016](https://github.com/dctdevelop/pegasus/blob/master/releases/1.5.2.release.md)
 Marks the official support for the API.
 
 ----
-### 1.44.x
+#### 1.44.x
 Our starting point for official releases.
 
 
