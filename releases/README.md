@@ -26,18 +26,28 @@ Breaking changes may occurr on ```mayor``` and ```minor``` numbers. ```Patches``
 
 - HotFix1 (https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.1/1.6.1-hf1.release.md)
 - HotFix2 (https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.1/1.6.1-hf2.release.md)
-
+---
 ### [1.6.2 - August 16, 2016](https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.2.release.md)
 Bug fixes
+---
 
+---
 ### [1.6.3 - August 19, 2016](https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.3.release.md)
 Bug fixes
+---
 
+---
 ### [1.6.4 - August 26, 2016](https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.4.release.md)
 triggers-related errors fixes
+---
 
+---
 ### [1.6.5 - August 30, 2015](https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.5.release.md)
 triggers-related errors fixes
+---
 
+---
 ### [1.6.6 - Sep 1, 2016](https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.6.release.md)
 Peg2.0 link added
+---
+
