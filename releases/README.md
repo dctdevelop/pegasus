@@ -11,6 +11,8 @@ Breaking changes may occur on ```mayor``` and ```minor``` numbers. ```Patches```
 ## Releases
 
 
+#### [1.8.10 - Aug 24, 2017](https://github.com/dctdevelop/pegasus/blob/master/releases/1.8.10.release.md)
+
 #### [1.8.8 - Jun 1, 2017](https://github.com/dctdevelop/pegasus/blob/master/releases/1.8.8.release.md)
 
 
