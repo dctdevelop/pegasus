@@ -1,14 +1,20 @@
-#Pegasus Release Notes - Summary
+# Pegasus Release Notes - Summary
 
-##Versioning
+## Versioning
 Name reflects ```major```, ```minor``` and ```patch``` concepts:
 ```
-	mayor.minor.patch
+	major.minor.patch
 ```
 
-Breaking changes may occurr on ```mayor``` and ```minor``` numbers. ```Patches```, are not expected to affect compatibility.
+Breaking changes may occur on ```mayor``` and ```minor``` numbers. ```Patches```, are not expected to affect compatibility.
 
-##Releases
+## Releases
+
+
+#### [1.8.8 - Jun 1, 2017](https://github.com/dctdevelop/pegasus/blob/master/releases/1.8.8.release.md)
+
+
+#### [1.7.9 - Jan 25, 2017](https://github.com/dctdevelop/pegasus/blob/master/releases/1.7.9.release.md)
 
 
 #### [1.6.6 - Sep 1, 2016](https://github.com/dctdevelop/pegasus/blob/master/releases/1.6.6.release.md)
