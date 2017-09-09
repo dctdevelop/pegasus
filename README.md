@@ -3,7 +3,7 @@
 # Pegasus - API support
 Stay tuned to DCT's Pegasus API development.
 
-#
+
 # Docs
 
 [API documentation](https://docs.pegasusgateway.com/)
