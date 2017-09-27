@@ -11,9 +11,9 @@ Breaking changes may occur on ```mayor``` and ```minor``` numbers. ```Patches```
 ## Releases
 
 
-#### [1.9.0 - Sep 7, 2017](https://github.com/dctdevelop/pegasus/blob/master/releases/1.9.0.release.md)
+#### [2.0.1 - Sep 27, 2017](https://github.com/dctdevelop/pegasus/blob/master/releases/2.0.1.release.md)
 
-Major release: changes to live payload, deprecation of legacy peg1.0 app
+Major release: breaking changes to live payload, deprecation of legacy peg1.0 app
 
 
 #### [1.8.10 - Aug 24, 2017](https://github.com/dctdevelop/pegasus/blob/master/releases/1.8.10.release.md)
