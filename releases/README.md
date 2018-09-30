@@ -6,7 +6,7 @@ Name reflects ```major```, ```minor``` and ```patch``` concepts:
 	major.minor.patch
 ```
 
-Breaking changes may occur on ```mayor``` and ```minor``` numbers. ```Patches```, are not expected to affect compatibility.
+Breaking changes may occur on ```major``` and ```minor``` numbers. ```Patches```, are not expected to affect compatibility.
 
 ## Releases
 
