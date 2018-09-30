@@ -8,6 +8,8 @@ Name reflects ```major```, ```minor``` and ```patch``` concepts:
 
 Breaking changes may occur on ```major``` and ```minor``` numbers. ```Patches```, are not expected to affect compatibility.
 
+[Click here to subscribe to API updates](http://developers.digitalcomtech.com/#mc_embed_signup_scroll)
+
 ## Releases
 
 #### [2.36.x - Sept 25, 2018](https://github.com/dctdevelop/pegasus/blob/master/releases/2.36.0.release.md)
