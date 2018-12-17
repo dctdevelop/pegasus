@@ -41,7 +41,7 @@ if ($db_store){
 	if (!mysqli_query($connection, $query))
 	{
 		// die('query failed: '. mysqli_connect_error());
-		$create_command = file_get_contents('https://cdn.pegasusgateway.com/sql/eventKeysMySQL.sql');
+		$create_command = file_get_contents('https://cdn2.pegasusgateway.com/sql/eventKeysMySQL.sql');
 		$create_command = str_replace('UNIT_EVENTS_RPC', DB_TABLE_NAME, $create_command);
 		if(!mysqli_query($connection, $create_command)){
 		 	die('table could not be created: '. mysqli_connect_error());

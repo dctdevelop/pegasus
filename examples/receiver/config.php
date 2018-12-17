@@ -44,7 +44,7 @@ if($db_store){
 	$query = "SELECT * FROM ".DB_TABLE_NAME." LIMIT 1";
 	// Create the table if it does not exist using the following schema
 	if (!mysql_query($query)){
-		$create_command = file_get_contents('https://cdn.pegasusgateway.com/sql/eventKeysMySQL.sql');
+		$create_command = file_get_contents('https://cdn2.pegasusgateway.com/sql/eventKeysMySQL.sql');
 		$create_command = str_replace('UNIT_EVENTS_RPC', DB_TABLE_NAME, $create_command);
 		if(!mysql_query($create_command)){
 			die('table could not be created: '. mysql_error());
