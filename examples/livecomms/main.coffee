@@ -1,13 +1,15 @@
 socket = io('https://live.pegasusgateway.com/socket')
 window.socket = socket
 
+
+
 app = angular.module('livecomms', ['ngMaterial'])
 app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 	$scope.main = "Sup"
 	$scope.auth =
 		pegasus : "https://pegasus1.pegasusgateway.com"
 		username: "developer@digitalcomtech.com"
-		password: "dctdevelop"
+		password: "deV3lopErs"
 	$scope.token = null
 	$scope.vehicles = []
 	$scope.logs = []
@@ -40,11 +42,17 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 
 	socket.on 'events', (envelope)->
 		console.log envelope
-
 		namespace = envelope.namespace
 		vehicle = envelope.object
 
-		$scope.logs.push envelope.payload
+		payload = clean_payload envelope.payload
+
+		window.globalHook?(payload)
+		if 'event' not in payload.updates
+			return
+		window.hook?(payload)
+
+		$scope.logs.push payload
 
 		$timeout ()->
 			victim = angular.element(document.getElementById('scrollme'))[0]
@@ -59,6 +67,29 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		socket.emit 'authenticate', {'pegasus': $scope.auth.pegasus, "auth": $scope.token}
 		return
 
+	clean_payload = (payload)->
+		payload._ver_core ?= '1.8.x'
+		if payload._ver_core.indexOf('1.8.') == 0
+			_event = payload
+			device = _event.device
+			event.device = null
+			delete _event.device
+			_event.message = _event.taip
+			_event.event_time ?= _event.event_time_epoch
+			_event.system_time ?= _event.system_time_epoch
+			payload =
+				pre: true
+				device: device
+				event: _event
+				_ver_core: _event._ver_core
+		if payload.event.type == 10
+			payload.event.label ?= 'trckpt'
+		else
+			payload.event.label = 'N/A'
+		payload.updates ?= ['event']
+		console.log payload
+		payload
+
 	$scope.toggle = (vehicle)->
 		console.log vehicle, vehicle in $scope.listening
 		if vehicle in $scope.listening
@@ -68,8 +99,8 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 
 	process_cache = (events)->
 		for ev in events
-			$scope.logs.push ev
-
+			clean = clean_payload ev
+			$scope.logs.push clean_payload ev
 		$timeout ()->
 			victim = angular.element(document.getElementById('scrollme'))[0]
 			victim.scrollTop = victim.scrollHeight+10000
@@ -117,14 +148,15 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		$scope.listening = []
 
 		$scope.message = "Connecting to Gateway"
-		$http.post $scope.auth.pegasus+"/api/v0/login", $scope.auth
-		.success (data)->
+		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
+		.then (response)->
+			data = response.data
 			$scope.message = "Succesfully connected, establishing live communications"
 			$scope.token = data.auth
 			$http.defaults.headers.common.Authenticate = data.auth
 			connect()
 			return
-		.error (data)->
+		.catch (response)->
 			$scope.error = "Invalid credentials."
 			return
 

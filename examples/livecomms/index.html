@@ -2,12 +2,11 @@
 <html style="height:100%">
 	<head>
 		<title>Syrus Web Socket Tester</title>
-		<script src="socket.io.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.slim.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.1.0-rc4/angular-material.min.js"></script>
-
 
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 
@@ -18,13 +17,13 @@
 		<script src="coffee-script.js"></script>
 	</head>
 	<body ng-controller="MainCtrl" layout="column" layout-padding>
-		<h3 class="md-display-1">Pegasus Gateway Live Communications</h3>
+		<h3 class="md-display-1">Pegasus Live Communications</h3>
 		<div layout="row" flex="none">
 			<div layout="column" flex>
 				<form class="form">
 				  <div class="form-group">
-				    <label class="" for="exampleInputEmail3">Pegasus</label>
-				    <input type="text" class="form-control" id="exampleInputEmail3" placeholder="https://gateway.com" ng-model='auth.pegasus'>
+				    <label class="" for="exampleInputURL3">Pegasus</label>
+				    <input type="text" class="form-control" id="exampleInputURL3" placeholder="https://gateway.com" ng-model='auth.pegasus'>
 				  </div>
 				  <div class="form-group">
 				    <label class="" for="exampleInputEmail3">Username</label>
@@ -44,8 +43,8 @@
 			<div layout="column" flex>
 				<div layout="row">
 					<p>Vehicles</p>
-					<input style="display:inline-block" type="text" class="form-control" id="exampleInputPassword3" placeholder="Search" ng-model='_filter'>
-					<button class="btn btn-info" ng-click="listen('all')">All</button>
+					<input style="display:inline-block" type="text" class="form-control" id="exampleInputPassword4" placeholder="Search" ng-model='_filter'>
+					<button class="btn btn-success" ng-click="listen('all')">All</button>
 					<button class="btn btn-danger" ng-click="stop('all')">Stop All</button>
 				</div>
 				<md-content
@@ -73,37 +72,34 @@
 		<md-content id="scrollme" flex layout="column">
 			<table class="table table-condensed table-striped" style='width:100%; border: 1px solid black; table-layout:fixed'>
 				<tr>
-					<td>ID</td>
+					<td>Primary</td>
+					<td>Secondary</td>
 					<td>time</td>
-					<td>type</td>
 					<td>code</td>
 					<td>label</td>
-					<td>lat</td>
-					<td>lon</td>
-					<td>mph</td>
+					<td>location</td>
 				</tr>
-				<tr ng-repeat-start="log in logs" ng-click=''>
-					<td>{{log.vid}}</td>
-					<td>{{log.event_time}}</td>
-					<td>{{log.type}}</td>
-					<td>{{log.code}}</td>
-					<td>{{log.label || 'trckpt'}}</td>
-					<td>{{log.lat}}</td>
-					<td>{{log.lon}}</td>
-					<td>{{log.mph}}</td>
+				<tr style="padding-top: 10px;" ng-repeat-start="log in logs" ng-click=''>
+					<td>{{log.primary.name}}<br><span style="color: #777; font-size: 8px;"> ID-{{log.primary.id}}</span></td>
+					<td>{{log.secondary.name}}<br><span style="color: #777; font-size: 8px;"> ID-{{log.secondary.id}}</span></td>
+					<td>{{log.event.event_time * 1000 | date:'medium'}}</td>
+					<td>{{log.event.code}}</td>
+					<td>{{log.event.label || 'trckpt'}}</td>
+					<td>{{log.event.lat}},{{log.event.lon}}</td>
 				</tr>
-				<tr ng-if='log.taip.indexOf("RTX")'>
-					<td></td>
-					<td></td>
-					<td class='text-warning' colspan='6' >
-						<div style="width:100%; overflow-x:scroll">{{log.taip}}</div>
+				<tr>
+					<td style="font-size: 8px; padding-bottom:16px;" class='text-warning' colspan='6' >
+						<div style="width:100%; overflow-x:scroll">{{log.event.message}}</div>
 					</td>
 				</tr>
+				<!-- <tr>
+					<td>{{log | json}}</td>
+				</tr> -->
 				<tr ng-repeat-end ng-if='log.outb_publish'>
 					<td></td>
 					<td>Message</td>
 					<td class='text-info' colspan='3'>{{log.outb_publish}}</td>
-					<td colspan='3'></td>
+					<td colspan='2'></td>
 				</tr>
 			</table>
 		</md-content>
