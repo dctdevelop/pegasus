@@ -12,6 +12,8 @@ Breaking changes may occur on ```major``` and ```minor``` numbers. ```patches```
 
 ## Releases
 
+#### [2.43.x - Apr 10, 2019](https://github.com/dctdevelop/pegasus/blob/master/releases/2.43.0.release.md)
+
 #### [2.42.x - Mar 25, 2019](https://github.com/dctdevelop/pegasus/blob/master/releases/2.42.0.release.md)
 
 #### [2.39.x - Nov 9, 2018](https://github.com/dctdevelop/pegasus/blob/master/releases/2.39.0.release.md)
