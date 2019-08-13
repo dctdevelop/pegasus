@@ -1,7 +1,6 @@
+# ------intialize the socket------------------------#
 socket = io('https://live.pegasusgateway.com/socket')
 window.socket = socket
-
-
 
 app = angular.module('livecomms', ['ngMaterial'])
 app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
@@ -10,13 +9,15 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		pegasus : "https://pegasus1.pegasusgateway.com"
 		username: "developer@digitalcomtech.com"
 		password: "deV3lopErs"
+		server : 'https://pegasus1.pegasusgateway.com/api/'
 	$scope.token = null
 	$scope.vehicles = []
+	$scope.vehicles_lis = []
 	$scope.logs = []
 	$scope.listening = []
-
+#------Set up basic handlers--------------------------#
 	socket.on '_authenticated', (data)->
-		console.log data
+		console.log "jonny",data
 		$scope.vehicles = data.vehicles
 		$scope.$apply()
 		socket.emit("resources")
@@ -29,31 +30,27 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		return
 
 	socket.on '_update', (message)->
-		console.info message
+		# console.info message
 		$scope.message = message
 		$scope.$apply()
 		return
 
 	socket.on 'resources', (resources)->
-		console.log resources
+		console.log "gg",resources
 		# $scope.vehicles = vehicles
 		# $scope.$apply()
 		return
 
 	socket.on 'events', (envelope)->
-		console.log envelope
 		namespace = envelope.namespace
 		vehicle = envelope.object
-
 		payload = clean_payload envelope.payload
-
 		window.globalHook?(payload)
 		if 'event' not in payload.updates
 			return
 		window.hook?(payload)
 
-		$scope.logs.push payload
-
+		$scope.logs.push payload 
 		$timeout ()->
 			victim = angular.element(document.getElementById('scrollme'))[0]
 			victim.scrollTop = victim.scrollHeight+10000
@@ -62,7 +59,6 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 
 		$scope.$apply()
 		return
-
 	connect = ()->
 		socket.emit 'authenticate', {'pegasus': $scope.auth.pegasus, "auth": $scope.token}
 		return
@@ -82,21 +78,19 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 				device: device
 				event: _event
 				_ver_core: _event._ver_core
-		if payload.event.type == 10
-			payload.event.label ?= 'trckpt'
+		if payload.event?.type == 10
+			payload.event?.label ?= 'trckpt'
 		else
-			payload.event.label = 'N/A'
+			payload.event?.label = 'N/A'
 		payload.updates ?= ['event']
-		console.log payload
 		payload
 
 	$scope.toggle = (vehicle)->
-		console.log vehicle, vehicle in $scope.listening
+		console.log "hey",vehicle, vehicle in $scope.listening
 		if vehicle in $scope.listening
 			$scope.stop vehicle
 		else
-			$scope.listen vehicle
-
+			$scope.listen vehicle 
 	process_cache = (events)->
 		for ev in events
 			clean = clean_payload ev
@@ -110,6 +104,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		return
 
 	$scope.listen = (vehicle)->
+		console.log "podr", vehicle
 		if $scope._filter?.length
 			filtered = $filter('filter') $scope.vehicles, $scope._filter
 			vehicle = []
@@ -140,7 +135,6 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 
 		console.log('emitting stop to server', envelope)
 		return
-
 	$scope.authenticate = ()->
 		$scope.error = null
 		$scope.vehicles = []
@@ -151,15 +145,34 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
 		.then (response)->
 			data = response.data
+			console.log "data",data
 			$scope.message = "Succesfully connected, establishing live communications"
 			$scope.token = data.auth
+			console.log $scope.token
 			$http.defaults.headers.common.Authenticate = data.auth
 			connect()
+			if $scope.token	 
+				$scope.getVehicles()
 			return
 		.catch (response)->
 			$scope.error = "Invalid credentials."
 			return
-
+#-------------------------GET USER VEHICLES ----------------------------------------//
+	$scope.getVehicles = (page)->
+		if page is undefined
+			page = 1
+		$http.get($scope.auth.server+'vehicles?page='+page)
+		.then (response)->
+			data = response.data
+			$scope.vehicles_lis = $scope.vehicles_lis.concat(data.data)
+			console.log "data", $scope.vehicles_lis
+			if page != data.pages
+				$scope.getVehicles page + 1
+			return
+		.catch (response)->
+			$scope.error = "Invalid vehicles"
+			return
+		return
 	$scope.destroy = ()->
 		stop('all')
 		socket.disconnect()
@@ -169,7 +182,6 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		$scope.vehicles = []
 		$scope.logs = []
 		return
-
 #Bootstrap application after everything is loaded (required if you want to use coffee-script directly in browser without precompiling)
 angular.element(document).ready ()->
 	angular.bootstrap(document, ['livecomms']);

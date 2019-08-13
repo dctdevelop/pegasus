@@ -20,13 +20,18 @@
 		</style>
 	</head>
 	<body ng-controller="MainCtrl" layout="column" layout-padding>
-		<h3 class="md-display-1">Pegasus Live Communications</h3>
-		<div layout="row" flex="none">
-			<div layout="column" flex>
-				<md-input-container md-no-float>
-					<label>Gateway</label>
-					<input type="text" placeholder="Search" ng-model='auth.pegasus'>
-				</md-input-container>
+		<div layout="row" flex="none" ng-if="vehicles_lis.length">
+			<h3 class="md-display-1">Live Communications</h3>
+			<span flex></span>
+			<md-button class="md-accent" ng-click="logout()">logout</md-button>
+		</div>
+		<span class="md-headline">API: {{auth.pegasus}}</span>
+		<span class="md-title" >{{auth.username}}</span>
+		<div
+			layout="row" 
+			ng-if="!vehicles_lis.length"
+			layout-align="center center">
+			<div layout="column" flex="30">
 				<md-input-container md-no-float>
 					<label>Username</label>
 					<input type="text" placeholder="Search" ng-model='auth.username'>
@@ -40,65 +45,54 @@
 					Sign in
 				</md-button>
 			</div>
-			<div layout="column" flex>
-				<div layout="row" layout-align="start center">
-					<md-input-container md-no-float flex>
-						<md-icon>search</md-icon>
-						<input type="text" placeholder="Search" ng-model='_filter'>
-					</md-input-container>
-					<md-button class="md-raised md-primary" ng-click="listen('all')">All</md-button>
-					<md-button class="md-raised md-warn" ng-click="stop('all')">Stop All</md-button>
-				</div>
-				<md-content
-					
-					layout="row" layout-wrap
-					class="md-whiteframe-z1"
-					style='height: 194px;'>
-					<div
-						flex="25"
-						layout="row"
-						layout-align="center center"
-						mmd-colors="{'border-color':'primary-A100'}"
-						sstyle='border-style:solid; border-width:1px;'
-						class="text-center md-whiteframe-z1"
-						ng-repeat='vehicle in vehicles_lis | filter: _filter'
-						ng-click='toggle(vehicle.id)'
-						ng-class='{"bg-info": listening.indexOf(vehicle.id) >= 0 }'>
-						<span>{{vehicle.name}}</span>
-					</div>
-				</md-content>
-			</div>
 		</div>
-		<div layout="row" layout-align="start center" flex="none" layout-margin>
+		<div layout="column" flex ng-if="vehicles_lis.length > 0">
+			<div layout="row" layout-align="start center">
+				<md-input-container md-no-float flex>
+					<md-icon>search</md-icon>
+					<input type="text" placeholder="Search" ng-model='_filter'>
+				</md-input-container>
+				<md-button class="md-raised md-primary" ng-click="listen('all')">All</md-button>
+				<md-button class="md-raised md-warn" ng-click="stop('all')">Stop All</md-button>
+			</div>
+			<md-content
+				
+				layout="row" layout-wrap
+				class="md-whiteframe-z1"
+				style='height: 194px;'>
+				<div
+					flex="25"
+					layout="row"
+					layout-align="center center"
+					mmd-colors="{'border-color':'primary-A100'}"
+					sstyle='border-style:solid; border-width:1px;'
+					class="text-center md-whiteframe-z1"
+					ng-repeat='vehicle in vehicles_lis | filter: _filter'
+					ng-click='toggle(vehicle.id)'
+					ng-class='{"bg-info": listening.indexOf(vehicle.id) >= 0 }'>
+					<span>{{vehicle.name}}</span>
+				</div>
+			</md-content>
+			<!-- </div> -->
+		</div>
+		<div layout="row" layout-align="start center" flex="none" layout-margin ng-show="logs.length > 0">
 			<p class="md-body-2">Console<p>
 			<md-button class='md-raised' ng-click='logs=[]'>Clear</md-button>
 		</div>
-		<md-content  id="scrollme" flex layout="column" class="md-margin md-whiteframe-z1">
+		<md-content  id="scrollme" flex layout="column" class="md-margin md-whiteframe-z1" ng-if="logs.length > 0">
 			<table class="table table-condensed table-striped table-bordered" style='width:100%; table-layout:fixed'>
 				<tr style="width: 50px;">
-					<td>Primary</td>
-					<td>Secondary</td>
-					<td>time</td>
-					<td>code</td>
-					<td>label</td>
-					<td>location</td>
+					<td>Vehicle ID</td>
+					<td>Device ID</td>
+					<td>System Time</td>
+					<td>Type</td>
 				</tr>
 				<tr ng-repeat-start="log in logs">
-					<td>{{log.primary.name}}<br><span style="color: #777; font-size: 8px;"> ID-{{log.primary.id}}</span></td>
-					<td>{{log.secondary.name}}<br><span style="color: #777; font-size: 8px;"> ID-{{log.secondary.id}}</span></td>
-					<td>{{log.event.event_time * 1000 | date:'medium'}}</td>
-					<td>{{log.event.code}}</td>
-					<td>{{log.event.label || 'trckpt'}}</td>
-					<td>{{log.event.lat}},{{log.event.lon}}</td>
+					<td>{{log.event.vid}}</td>
+					<td>{{log.event.device_id}}</td>
+					<td>{{log.event.system_time | date:'medium'}}</td>
+					<td>{{log.event.type}}</td>
 				</tr>
-				<tr>
-					<td style="font-size: 8px; padding-bottom:16px;" class='text-warning' colspan='6' >
-						<div style="width:100%; overflow-x:scroll">{{log.event.message}}</div>
-					</td>
-				</tr>
-				<!-- <tr>
-					<td>{{log | json}}</td>
-				</tr> -->
 				<tr ng-repeat-end ng-if='log.outb_publish'>
 					<td></td>
 					<td>Message</td>

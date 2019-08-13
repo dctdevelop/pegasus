@@ -1,17 +1,19 @@
 socket = io('https://live.pegasusgateway.com/socket')
 window.socket = socket
 
-app = angular.module('livecomms', [])
-app.controller "MainCtrl", ($scope, $http)->
+app = angular.module('livecomms', ['ngMaterial'])
+app.controller "MainCtrl", ($scope, $http, $timeout)->
 	$scope.main = "Sup"
 	$scope.auth =
 		pegasus : "https://pegasus1.pegasusgateway.com"
 		username: "developer@digitalcomtech.com"
-		password: "dctdevelop"
+		password: "deV3lopErs"
 	$scope.token = null
+	$scope.load = false
 	$scope.vehicles = []
 	$scope.logs = []
 	$scope.listening = []
+	$scope.vehicles_list = []
 	$scope.ios = {
 		vid: null
 		event_time: ''
@@ -29,10 +31,11 @@ app.controller "MainCtrl", ($scope, $http)->
 		msg: ""
 	}
 
-	socket.on '_authenticated', (message)->
-		console.log message
-		$scope.vehicles = message.vehicles
-		socket.emit("vehicle:list")
+	socket.on '_authenticated', (data)->
+		console.log data
+		$scope.vehicles = data.vehicles
+		$scope.$apply()
+		socket.emit("resources")
 		return
 
 	socket.on '_error', (message)->
@@ -56,6 +59,7 @@ app.controller "MainCtrl", ($scope, $http)->
 	socket.on 'events', (events)->
 		victim = angular.element(document.getElementById('scrollme'))[0]
 		victim.scrollTop = victim.scrollHeight+10000
+		console.log "eventos",events
 		events.map (i)->
 			console.log i
 			if $scope.ios.vid == i.vid
@@ -67,9 +71,9 @@ app.controller "MainCtrl", ($scope, $http)->
 				$scope.ios.io_out1= if i.io_out1 != undefined && i.io_out2!=null then i.io_out1 else $scope.ios.io_out1
 				$scope.ios.io_out2= if i.io_out2 != undefined && i.io_out2!=null then i.io_out2 else $scope.ios.io_out2
 			$scope.logs.push i
+			console.log "logs",$scope.logs
 		$scope.$apply()
 		return
-
 	connect = ()->
 		socket.emit 'authenticate', {'pegasus': $scope.auth.pegasus, "auth": $scope.token}
 		return
@@ -82,10 +86,13 @@ app.controller "MainCtrl", ($scope, $http)->
 			$scope.stop vehicle
 		else
 			$scope.listen vehicle
+		console.log "veh",vehicle
 		_get_state(vehicle)
 		return
 
 	$scope.modify_output = (out, state) ->
+		$scope.load = true
+		console.log "state",state,$scope.ios.vid
 		$scope.alert.type=""
 		$scope.alert.msg=""
 		data = {
@@ -94,26 +101,34 @@ app.controller "MainCtrl", ($scope, $http)->
 			state: state
 		}
 		$http.post $scope.auth.pegasus+"/api/vehicles/"+$scope.ios.vid+"/remote/output", data
-		.success (data)->
+		.then (response)->
+			data = response.data
 			console.log data
 			$scope.alert.type="SUCCESS"
 			$scope.alert.msg=data.msg
+			$timeout ->
+				_get_state($scope.ios.vid)
+				$scope.load = false
+			,8000
 			return
-		.error (data)->
+		.catch (response)->
+			console.log "error",response.data.message
 			$scope.alert.type="ERROR"
-			$scope.alert.msg=data.message
+			$scope.alert.msg=data.message+  ' ' + response.data.message
+			$scope.load = false
 			return
-
 
 	_get_state = (vehicle=null) ->
-		console.log "Vehicle id: "+vehicle
+		$scope.load = true
+		console.log "Vehicle id: ",vehicle
 		if vehicle != null
 			console.log "set vehicle."
-			$scope.ios.vid = if $scope.ios.vid==null || $scope.ios.vid != vehicle then vehicle else $scope.ios.vid
+			$scope.ios.vid = if $scope.ios.vid is null or $scope.ios.vid isnt vehicle then vehicle else $scope.ios.vid
 		else
 			console.log "Not set vehicle."
 		$http.get $scope.auth.pegasus+"/api/vehicles/"+$scope.ios.vid+"/remote/state"
-		.success (data)->
+		.then (response)->
+			data = response.data
 			$scope.ios.io_pwr= data.ios.io_pwr
 			$scope.ios.io_ign= data.ios.io_ign
 			$scope.ios.io_in1= data.ios.io_in1
@@ -121,8 +136,13 @@ app.controller "MainCtrl", ($scope, $http)->
 			$scope.ios.io_in3= data.ios.io_in3
 			$scope.ios.io_out1= data.ios.io_out1
 			$scope.ios.io_out2= data.ios.io_out2
+			$scope.io_data = data.ios
+			$scope.io_data.id = $scope.ios.vid
+			$scope.logs.push $scope.io_data
+			$scope.load = false
+			console.log "ios",$scope.logs,$scope.ios.vid
 			return
-		.error (data)->
+		.catch (response)->
 			console.log data
 			return
 
@@ -136,6 +156,21 @@ app.controller "MainCtrl", ($scope, $http)->
 		$scope.listening = []
 		socket.emit 'stop:vehicles', vehicle
 		return
+	$scope.getVehicles = (page)->
+		if page is undefined
+			page = 1
+		$http.get($scope.auth.pegasus+"/api/"+'vehicles?page='+page)
+		.then (response)->
+			data = response.data
+			$scope.vehicles_list = $scope.vehicles_list.concat(data.data)
+			console.log "data", $scope.vehicles_list
+			if page != data.pages
+				$scope.getVehicles page + 1
+			return
+		.catch (response)->
+			$scope.error = "Invalid vehicles"
+			return
+		return
 
 	$scope.authenticate = ()->
 		$scope.error = null
@@ -145,13 +180,16 @@ app.controller "MainCtrl", ($scope, $http)->
 
 		$scope.message = "Connecting to Gateway"
 		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
-		.success (data)->
+		.then (response)->
+			data = response.data
 			$scope.message = "Succesfully connected, establishing live communications"
+			console.log "mensje",$scope.message
 			$scope.token = data.auth
 			$http.defaults.headers.common.Authenticate = data.auth
 			connect()
+			$scope.getVehicles()
 			return
-		.error (data)->
+		.catch (response)->
 			$scope.error = "Invalid credentials."
 			return
 
