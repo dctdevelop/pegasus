@@ -2,79 +2,98 @@
 <html>
 	<head>
 		<title>Syrus Live Console</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-animate.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-aria.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.1.4/angular-material.min.js"></script>
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
-		<script src="socket.io.js"></script>
-		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.4/angular.js"></script>
+		<link rel="stylesheet"href="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.1.4/angular-material.min.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.slim.js"></script>
+		<!-- <script src="socket.io.js"></script> -->
 		<script src="main.coffee" type='text/coffeescript'></script>
 		<script src="coffee-script.js"></script>
 	</head>
-	<body layout='column' ng-controller="MainCtrl">
-		<div class="container-fluid">
-			<div class="row">
-				<div class="col-xs-12">
-					<h3>Syrus Live Console</h3>
+	<body layout='column' ng-controller="MainCtrl" layout-padding>
+		<h3 class="md-display-1">Syrus Live Console</h3>
+		<div flex="none" layout="row">
+			<div layout="column" flex>
+				<md-input-container md-no-float>
+					<label>Gateway</label>
+					<input type="text" placeholder="https://gateway.com" ng-model='auth.pegasus'>
+				</md-input-container>
+				<md-input-container md-no-float>
+					<label>Username</label>
+					<input type="text" placeholder="username" ng-model='auth.username'>
+				</md-input-container>
+				<md-input-container md-no-float>
+					<label>Password</label>
+					<input type="password" placeholder="password" ng-model='auth.password'>
+				</md-input-container>
+				<md-button class="md-primary md-raised" ng-click='authenticate();'
+					ng-disabled='!(auth.pegasus.length && auth.username.length && auth.password.length)'>
+					Sign in
+				</md-button>
+				<!-- <h5 class='text-danger'>{{error}}</h5>
+				<h5 class='text-info' style="overflow:auto;">{{message}}</h5> -->
+				<div layout="column" flex>
+					<div layout="row" layout-align="start center">
+						<md-input-container md-no-float flex>
+							<md-icon>search</md-icon>
+							<input type="text" placeholder="Search" ng-model='_filter'>
+						</md-input-container>
+						<md-button class="md-raised md-primary" ng-click="listen('all')">All</md-button>
+						<md-button class="md-raised md-warn" ng-click="stop('all')">Stop All</md-button>
+					</div>
+					<md-content layout="row" layout-wrap class="md-whiteframe-z1" style='height: 194px;'>
+						<div 
+							flex="25" 
+							layout="column" 
+							layout-align="center center" 
+							class="text-center md-whiteframe-z1"
+							ng-repeat='vehicle in vehicles_lis | filter: _filter' ng-click='toggle(vehicle.id)'
+							ng-class='{"bg-info": listening.indexOf(vehicle.id) >= 0 }'>
+							<span class="md-body-2">{{vehicle.name}}</span>
+							<span class="md-caption">{{vehicle.device}}</span>
+						</div>
+					</md-content>
 				</div>
 			</div>
-			<div class="row">
-				<div class="col-xs-6">
-					<form class="form">
-					  <div class="form-group">
-					    <label class="" for="exampleInputEmail3">Pegasus</label>
-					    <input type="text" class="form-control" id="exampleInputEmail3" placeholder="https://gateway.com" ng-model='auth.pegasus'>
-					  </div>
-					  <div class="form-group">
-					    <label class="" for="exampleInputEmail3">Username</label>
-					    <input type="text" class="form-control" id="exampleInputEmail3" placeholder="user[@company.com]" ng-model='auth.username'>
-					  </div>
-					  <div class="form-group">
-					    <label class="" for="exampleInputPassword3">Password</label>
-					    <input type="password" class="form-control" id="exampleInputPassword3" placeholder="Password" ng-model='auth.password'>
-					  </div>
-					  <button type="button" class="btn btn-primary"
-					  	ng-click='authenticate()'
-					  	ng-disabled='!(auth.pegasus.length && auth.username.length && auth.password.length)'>
-					  		Sign in
-					  	</button>
-					</form>
-					<h5 class='text-danger'>{{error}}</h5>
-					<h5 class='text-info' style="overflow:auto;">{{message}}</h5>
-					<input type="text" class="form-control" id="exampleInputPassword3" placeholder="Search" ng-model='_filter'>
-					<button class="btn btn-info" ng-click="listen('all')" >All</button>
-					<button class="btn btn-danger" ng-click="stop('all')">Stop All</button>
-					<div style='max-height: 400px; overflow-y: scroll'>
-						<table class="table table-condensed table-hover">
-							<tr ng-repeat='vehicle in vehicles | filter: _filter' ng-click='toggle(vehicle)' ng-class='{"bg-info": listening.indexOf(vehicle) >= 0 }'>
-								<td>{{vehicle}}</td>
-							</tr>
-						</table>
+			<div class="col-xs-6" style='height: 450px; overflow-y:scroll; border: 1px solid black' id='scrollme'>
+					<div layout="row" flex="none">
+						<h3>Console</h3>
+						<span flex></span>
+						<md-button class='md-raised' ng-click='history=[];command=""'>Clear</md-button>
 					</div>
-				</div>
-				
-
-				<h3>Console</h3>
-				
-				<!-- button class='btn btn-default' ng-click='logs=[]'>Clear</button -->
-
-				<div class="col-xs-6" style='height: 450px; overflow-y:scroll; border: 1px solid black' id='scrollme'>
-					<table style="font-family:monospace" class="table table-condensed table-striped">
+					<table style="font-family:monospace" class="table table-condensed table-striped" >
 						
 						<tr ng-repeat="log in history" >
 							<td>{{log.ocid}}</td>
+							<td>{{log.imei}}</td>
 							<td>{{log.cmd}}</td>
 							<td>{{log.response}}</td>
 						</tr>
 						
 					</table>
-					<div>
-						
-						<div class="cols-xs-4">
-							<input type="text" ng-model="command" />
-						</div>
-						<div class="cols-xs-4">
-							<button ng-click="sendCmd()" type="button" class="btn btn-primary"
-							>Send</button></div>
+					<br ng-if="!history.length">
+					<br ng-if="!history.length">
+					<br ng-if="!history.length">
+					<br ng-if="!history.length">
+					<br ng-if="!history.length">
+					<br ng-if="!history.length">
+					<br ng-if="!history.length">
+					<br ng-if="!history.length">
+					<br ng-if="!history.length">					
+					<br ng-if="!history.length">					
+					<br ng-if="!history.length">					
+					<div cclass="cols-xs-4">
+						<md-input-container md-no-float flex>
+							<input type="text" ng-model="command" aria-label="commands" placeholder="commands"/>
+						</md-input-container>
+						<md-button ng-click="sendCmd()" class="md-raised md-primary"><md-icon className="material-icons">send</md-icon></md-button>
 					</div>
+					<span ng-if="command">{{error}}</span>
 
 				</div>
 			</div>

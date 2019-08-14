@@ -9,10 +9,12 @@
 	<script src="angular-ui-bootstrap.js"></script>
 	<script src="ngStorage.min.js"></script>
 	<script src="angular-charts.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 	<style>
 		.chart{
 			height:400px;
-			width:100%;
+			max-width:80%;
+			margin: auto;
 		}
 	</style>
 </head>
@@ -91,37 +93,39 @@
 							<datepicker ng-model="dts.to" show-weeks="true" class="well well-sm"></datepicker>
 						</div>
 					</div>
-				</div>
-				<div class="row">
-					<div class="col-xs-12 text-center">
-						<button class="btn btn-default" ng-disabled='selected_vehicle==null' ng-click='generate_report()'>Generate Report</button>
+					<div class="col-xs-10">
+						<div class="col-xs-12 text-center">
+							<button class="btn btn-default" ng-disabled='selected_vehicle==null' ng-click='generate_report()'>Generate Report</button>
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div class="row" style="opacity: {{report_data ? 1: 0}}; transition: opacity 1s linear;">
+		<div class="row" ng-if="report_data">
 			<div class="col-xs-12">
 				<h4>{{selected_vehicle.name}}</h4>
 			</div>
 			<div class='col-xs-12'>
-				<select class='form-control' name="" id="" ng-options='t for t in types' ng-model='distance_type'></select>
+				<select class='form-control' name="" id="" ng-options='t for t in types' ng-model='distance_type' style="max-width: 80%; margin: auto"></select>
 				<div ac-chart="distance_type" ac-data="distance_data" ac-config="distance_config" id='chart' class='chart'></div> <br>
 
-				<select class='form-control' name="" id="" ng-options='t for t in types' ng-model='engine_type'></select>
-				<div ac-chart="engine_type" ac-data="engine_data" ac-config="engine_config" id='chart' class='chart'></div>
+				<select class='form-control' name="" id="" ng-options='t for t in types' ng-model='engine_type' style="max-width: 80%; margin: auto"></select>
+				<div ac-chart="engine_type" ac-data="engine_data" ac-config="engine_config" id='chart' class='chart' "></div>
 			</div>
-			<div class="col-xs-12">
+			<div class="col-xs-12" style='height: 500px; overflow: scroll;'>
 				<br><br>
 				<table class='table'>
 					<tr>
 						<th>Date</th>
-						<th ng-repeat=' (k,v) in report_data.counters[0]' ng-if='k != "time" '>{{k}}</th>
+						<th ng-repeat=' (k,v) in report_data.counters[0]' ng-if='k != "time"'>{{k}}</th>
 					</tr>
-					<tr ng-repeat="d in report_data.counters">
+					<tr ng-repeat="d in report_data.counters" ng-class='{"bg-warning":($index+1)%2}'>
 						<td>
 							{{d.event_time | limitTo:10 }}
 						</td>
-						<td ng-repeat='(k,v) in d' ng-if='k != "time" ' >{{v | number:2}}</td>
+						<td ng-repeat='(k,v) in d' ng-if='k != "time" '>
+							{{v | number:2}}
+						</td>
 					</tr>
 				</table>
 			</div>
@@ -132,12 +136,14 @@
 		counters_app = angular.module('counters_app', ['ui.bootstrap','ngStorage','angularCharts']);
 		counters_app.controller('MainCtrl', function($scope,$http,$localStorage) {
 			$scope.auth = $localStorage.auth || {}
+//-----------------select type graphics-----------------------------------------------//
 			$scope.types=['pie', 'bar', 'line', 'point', 'area']
 
 			$scope.distance_type = 'bar'
 			$scope.engine_type = 'line'
 
 			$scope.vehicles = []
+//-----------------save information-------------------------------------------------------//
 			$localStorage.$reset()
 			$localStorage.$default({auth:$scope.auth, report_data:null, vehicle:{} })
 			$scope.report_data = $localStorage.report_data
@@ -147,11 +153,12 @@
 				formatYear: 'yyyy',
 				startingDay: 1
 			};
+//--------------------Date for graphics---------------------------------------------// 
 			$scope.dts={
 				from : new Date(),
 				to: new Date()
 			}
-
+//-------------------------login check user----------------------------------------//
 			$scope.login_check = function(){
 				$http.get(server+'login')
 				.success(function(data) {
@@ -163,6 +170,7 @@
 					console.log("-----Error-----")
 				});
 			}
+//-------------------------logout user----------------------------------------//
 			$scope.logout = function(){
 				$http.get(server+'logout')
 				.success(function(data) {
@@ -174,6 +182,7 @@
 					console.log("-----Error-----")
 				});
 			}
+//-------------------------login user----------------------------------------//
 			$scope.login = function(){
 				$http.post(server+'login',$scope.auth)
 				.success(function(data) {
@@ -191,6 +200,7 @@
 				});
 			}
 
+//-------------------------get vehicles----------------------------------------//
 			$scope.getVehicles = function(page){
 				if (page == null){page = 1}
 				$http.get(server+'vehicles?page='+page)
@@ -206,12 +216,14 @@
 					console.log("-----Error-----")
 				});
 			}
-			$scope.test = function(a){
-				console.log(a)
-			}
+			// $scope.test = function(a){
+			// 	console.log(a)
+			// }
+//------------------------Selected vehicle --------------------------------------------//
 			$scope.select_vehicle = function(vehicle){
 				$scope.selected_vehicle = vehicle
 				$localStorage.vehicle = vehicle
+				
 			}
 			$scope.generate_report = function(){
 				from_date = $scope.dts.from
@@ -226,6 +238,7 @@
 					$scope.process()
 				})
 			}
+//------------------------generate graphics --------------------------------------------//
 			$scope.process = function(){
 				$scope.distance_config = {
 					title: 'Distance, ' +$scope.report_data.units.distance+'s', 
@@ -281,6 +294,9 @@
 				data = {}
 				data.series = ['&nbsp;ON', '&nbsp;Idle']
 				data.data = []
+				console.log("reprte", $scope.report_data);
+				console.log("rpt", $scope.report_data.counters[0]);
+				
 				$scope.report_data.counters.forEach(function(value, index, array){
 					o = {}
 					d = new Date(value.from)
@@ -291,6 +307,7 @@
 				})
 				$scope.engine_data = data
 			}
+//-------------------auth  token-------------------------------------------------------------//
 			if($scope.auth.token){
 				$http.defaults.headers.common.Authenticate = $scope.auth.token
 				$scope.login_check()

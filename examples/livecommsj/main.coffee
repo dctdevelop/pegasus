@@ -1,21 +1,23 @@
+# ------intialize the socket------------------------#
 socket = io('https://live.pegasusgateway.com/socket')
 window.socket = socket
 
-app = angular.module('livecomms', ['ngMaterial'])
-app.controller "MainCtrl", ($scope, $http, $timeout)->
+app = angular.module('livecommsj', ['ngMaterial'])
+app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 	$scope.main = "Sup"
 	$scope.auth =
 		pegasus : "https://pegasus1.pegasusgateway.com"
 		username: "developer@digitalcomtech.com"
 		password: "deV3lopErs"
+		server : 'https://pegasus1.pegasusgateway.com/api/'
 	$scope.token = null
 	$scope.vehicles = []
-	$scope.vehicles_list = []
+	$scope.vehicles_lis = []
 	$scope.logs = []
 	$scope.listening = []
-
+#------Set up basic handlers--------------------------#
 	socket.on '_authenticated', (data)->
-		console.log data
+		
 		$scope.vehicles = data.vehicles
 		$scope.$apply()
 		socket.emit("resources")
@@ -23,21 +25,22 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 
 	socket.on '_error', (message)->
 		console.error message
-		$scope.error = error
+		$scope.error = message
 		$scope.$apply()
 		return
 
 	socket.on '_update', (message)->
-		console.info message
+		# console.info message
 		$scope.message = message
 		$scope.$apply()
 		return
 
 	socket.on 'resources', (resources)->
-		console.log resources
-		# $scope.resources = resources
+		console.log "gg",resources
+		# $scope.vehicles = vehicles
 		# $scope.$apply()
 		return
+
 	socket.on 'events', (envelope)->
 		namespace = envelope.namespace
 		vehicle = envelope.object
@@ -82,24 +85,17 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		payload.updates ?= ['event']
 		payload
 
-
-	connect = ()->
-		socket.emit 'authenticate', {'pegasus': $scope.auth.pegasus, "auth": $scope.token}
-		return
-
 	$scope.toggle = (vehicle)->
-		console.log vehicle, $scope.listening
+		console.log vehicle, vehicle in $scope.listening
 		if vehicle in $scope.listening
 			$scope.stop vehicle
 		else
-			$scope.listen vehicle
-		# $scope.load_photo()
-
+			$scope.listen vehicle 
 	process_cache = (events)->
 		for ev in events
 			clean = clean_payload ev
 			$scope.logs.push clean_payload ev
-		console.log $scope.logs
+		console.log  $scope.logs
 		$timeout ()->
 			victim = angular.element(document.getElementById('scrollme'))[0]
 			victim?.scrollTop = victim?.scrollHeight+10000
@@ -107,43 +103,39 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		, 200
 
 		return
+
 	$scope.listen = (vehicle)->
-	
-		if $scope.vehicles.length is 0	
-			return
+		console.log vehicle
+		if $scope._filter?.length
+			filtered = $filter('filter') $scope.vehicles, $scope._filter
+			vehicle = []
+			for _f in filtered
+				continue if _f in $scope.listening
+				$scope.listening.push _f
+				vehicle.push _f
 		if vehicle is "all"
 			$scope.listening = $scope.vehicles
 		else
 			$scope.listening.push(vehicle)
-		
 
 		envelope = {namespace:"vehicle-events", objects: vehicle}
-		console.log('emitting listen to server', envelope)
 		socket.emit 'listen', envelope, process_cache
 
+
+		console.log('emitting listen to server', envelope)
 		return
 
-	$scope.load_photo = (log)->
-		if !log.event?.vid
-			return
-		$http.get("#{$scope.auth.pegasus}/api/vehicles/"+log.event?.vid+"/plugins/photocam/last")
-		.then (response)->
-			data = response.data
-			log.photo_data = data
-		.catch (response) ->
-			$scope.error = "vehicle does not have any photos"+ ' ' + log.event?.vid  
-			console.log $scope.error +" "+log.event?.vid
-	
 	$scope.stop = (vehicle)->
 		if vehicle is "all"
 			$scope.listening = []
 		else
 			$scope.listening.splice($scope.listening.indexOf(vehicle), 1)
 
-		console.log('emitting stop to server', vehicle)
-		socket.emit 'stop:vehicles', vehicle
-		return
+		envelope = {namespace:"vehicle-events", objects: vehicle}
+		socket.emit 'stop', envelope
 
+		console.log('emitting stop to server', envelope)
+		return
 	$scope.authenticate = ()->
 		$scope.error = null
 		$scope.vehicles = []
@@ -154,23 +146,39 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
 		.then (response)->
 			data = response.data
+			console.log "data",data
+			$scope.data_auth = data 
 			$scope.message = "Succesfully connected, establishing live communications"
 			$scope.token = data.auth
+			console.log $scope.token
 			$http.defaults.headers.common.Authenticate = data.auth
 			connect()
-			$scope.getVehicles()
+			if $scope.token	 
+				$scope.getVehicles()
 			return
 		.catch (response)->
-			$scope.error = "Invalid credentials." + " " + response.data.message 
+			$scope.error = "Invalid credentials."
 			return
+	$scope.logout  = ->
+		$http.get $scope.auth.server+'logout'
+		.then (response)->
+			$scope.vehicles_lis = []
+			$scope.logs = []
+			$scope.token = undefined
+			return
+		.catch (response)->
+			$scope.error = "Invalid credentials."
+			return
+
+#-------------------------GET USER VEHICLES ----------------------------------------//
 	$scope.getVehicles = (page)->
 		if page is undefined
 			page = 1
-		$http.get($scope.auth.pegasus+"/api/"+'vehicles?page='+page)
+		$http.get($scope.auth.server+'vehicles?page='+page)
 		.then (response)->
 			data = response.data
-			$scope.vehicles_list = $scope.vehicles_list.concat(data.data)
-			console.log $scope.vehicles_list
+			$scope.vehicles_lis = $scope.vehicles_lis.concat(data.data)
+			console.log $scope.vehicles_lis
 			if page != data.pages
 				$scope.getVehicles page + 1
 			return
@@ -187,7 +195,6 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		$scope.vehicles = []
 		$scope.logs = []
 		return
-
 #Bootstrap application after everything is loaded (required if you want to use coffee-script directly in browser without precompiling)
 angular.element(document).ready ()->
-	angular.bootstrap(document, ['livecomms']);
+	angular.bootstrap(document, ['livecommsj']);

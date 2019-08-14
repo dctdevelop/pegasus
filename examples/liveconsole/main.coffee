@@ -1,23 +1,25 @@
 socket = io('https://live.pegasusgateway.com/socket')
 window.socket = socket
 
-app = angular.module('livecomms', [])
-app.controller "MainCtrl", ($scope, $http)->
+app = angular.module('livecomms', ['ngMaterial'])
+app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 	$scope.main = "Sup"
 	$scope.auth =
 		pegasus : "https://pegasus1.pegasusgateway.com"
 		username: "developer@digitalcomtech.com"
-		password: "dctdevelop"
+		password: "deV3lopErs"
 	$scope.token = null
 	$scope.vehicles = []
 	$scope.history = []
 	$scope.sent_indexes = {}
 	$scope.listening = []
 	$scope.pendings = []
+	$scope.vehicles_lis = []
 
 	socket.on '_authenticated', (data)->
 		console.log data
 		$scope.vehicles = data.vehicles
+		console.log "vehicles",$scope.vehicles
 		$scope.$apply()
 		socket.emit("resources")
 		return
@@ -41,13 +43,16 @@ app.controller "MainCtrl", ($scope, $http)->
 		return
 
 	socket.on 'events', (envelope)->
-		console.log envelope
-		victim = angular.element(document.getElementById('scrollme'))[0]
-		victim.scrollTop = victim.scrollHeight+10000
+		console.log "eventos",envelope
+		$timeout ()->
+			victim = angular.element(document.getElementById('scrollme'))[0]
+			victim.scrollTop = victim.scrollHeight+10000
+			return
+		,200
 		events = envelope.payload
-
-		events.map (ev)->
-			console.log ev
+		console.log "ev",events
+		# for name,ev  of events.event
+			
 			#
 			# 'outb_publish': {
 			#	'do_outb_publish': True,
@@ -57,36 +62,37 @@ app.controller "MainCtrl", ($scope, $http)->
 			#       'ctype': u'consolecmd',
 			#        'state': 'device_ok'}},
 
-			if ev.type == 10 #ignore gps events
-				return
-			if ev.type == 12
-				return
+		# 	if ev.type == 10 #ignore gps events
+		# 		return
+		# 	if ev.type == 12
+		# 		return
 
-			try
-				ocid = ev.outb_publish.outb_log.cid
-			catch exception
-				ocid = undefined
+		# 	try
+		# 		ocid = ev.outb_publish.outb_log.cid
+		# 	catch exception
+		# 		ocid = undefined
 			
-			log = 
-				ocid : ocid
-				response : ev.taip
-				unsolicited : true
-				cmd : "...unsolicited..."
+		# 	log = 
+		# 		ocid : ocid
+		# 		response : ev.taip
+		# 		unsolicited : true
+		# 		cmd : "...unsolicited..."
 
-			console.log("check", ocid, $scope.sent_indexes)
-			#console.log($scope.sent_indexes[ocid])
-			if ocid == undefined
-				log.unsolicited = false
-				$scope.history.push log
+		# 	console.log("check", ocid, $scope.sent_indexes)
+		# 	console.log($scope.sent_indexes[ocid])
+		# 	if ocid == undefined
+		# 		log.unsolicited = false
+		# 		$scope.history.push log
+		# 		console.log "log1",$scope.history
 
-			else
-				if $scope.sent_indexes[ocid] == undefined
-					log.unsolicited = false
-					$scope.history.push log
-				else
-					ind = $scope.sent_indexes[ocid]
-					$scope.history[ind].response = ev.taip
-
+		# 	else
+		# 		if $scope.sent_indexes[ocid] == undefined
+		# 			log.unsolicited = false
+		# 			$scope.history.push log
+		# 			console.log "log2",$scope.history
+		# 		else
+		# 			ind = $scope.sent_indexes[ocid]
+		# 			$scope.history[ind].response = ev.taip
 
 			#$scope.logs.push i
 		$scope.$apply()
@@ -132,14 +138,16 @@ app.controller "MainCtrl", ($scope, $http)->
 
 		$scope.message = "Connecting to Gateway"
 		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
-		.success (data)->
+		.then (response)->
+			data = response.data
 			$scope.message = "Successfully connected, establishing live communications"
 			$scope.token = data.auth
 			$http.defaults.headers.common.Authenticate = data.auth
 			connect()
+			$scope.getVehicles()
 			$http.defaults.headers.common.Authenticate = $scope.token
 			return
-		.error (data)->
+		.catch (response)->
 			$scope.error = "Invalid credentials."
 			return
 
@@ -154,33 +162,51 @@ app.controller "MainCtrl", ($scope, $http)->
 		return
 
 	$scope.sendCmd = ()->
-		if $scope.command.length == 0
+		if $scope.command?.length == 0
 			return
-		#console.log("sending to ", $scope.listening)
-
+		if $scope.listening.length is 0
+			return 
+		console.log("sending to ", $scope.listening)
+		vids = $scope.listening 
 		post_data = 
 			cmd : $scope.command
 			includeImei : false
-
-		uri = $scope.auth.pegasus+"/api/vehicles/"+$scope.listening[0]+"/remote/console"
-		$http.post(uri, post_data)
-		.success (data)->
-			
-			if data.oids
-				ocid = data.oids[0]
-				console.log(ocid)
-				log = 
-					ocid : ocid
-					cmd : post_data.cmd
-
-				$scope.history.push log
-				$scope.sent_indexes[ocid] = $scope.history.length - 1
+		vids.map (vid)->
+			uri = $scope.auth.pegasus+"/api/vehicles/"+vid+"/remote/console"
+			$http.post(uri, post_data)
+			.then (response)->
+				data = response.data
+				console.log "pp",data
+				if data.oids
+					ocid = data.oids[0]
+					# console.log(ocid)
+					log = 
+						ocid : ocid
+						cmd : post_data.cmd
+						imei: data.imei
+					$scope.history.push log
+					# $scope.sent_indexes[ocid] = $scope.history.length - 1
+					console.log "{}",$scope.history
+				return
+			.catch (response)->
+				$scope.error = "Invalid COMMANDS"
+				return
+			return 
+	$scope.getVehicles = (page)->
+		if page is undefined
+			page = 1
+		$http.get($scope.auth.pegasus+"/api/"+'vehicles?page='+page)
+		.then (response)->
+			data = response.data
+			$scope.vehicles_lis = $scope.vehicles_lis.concat(data.data)
+			console.log "data", $scope.vehicles_lis
+			if page != data.pages
+				$scope.getVehicles page + 1
 			return
-		.error (data)->
-			
+		.catch (response)->
+			$scope.error = "Invalid vehicles"
 			return
-
-		return 
+		return
 
 #Bootstrap application after everything is loaded (required if you want to use coffee-script directly in browser without precompiling)
 angular.element(document).ready ()->
