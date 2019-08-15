@@ -15,6 +15,9 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 	$scope.listening = []
 	$scope.pendings = []
 	$scope.vehicles_list = []
+	$scope.resp = []
+	$scope.logs = []
+	$scope.load = false
 
 	socket.on '_authenticated', (data)->
 		console.log data
@@ -43,63 +46,40 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		return
 
 	socket.on 'events', (envelope)->
+		namespace = envelope.namespace
+		vehicle = envelope.object
+		payload = clean_payload envelope.payload
+		window.globalHook?(payload)
+		if 'event' not in payload.updates
+			return
+		window.hook?(payload)
+		console.log "payload",payload
+		# $scope.response = {}
+		# $scope.event =  payload.event.outbresponse?.response
+		# $scope.response?[payload.device.imei] = $scope.event
+		# $scope.resp.push $scope.response
 		$timeout ()->
 			victim = angular.element(document.getElementById('scrollme'))[0]
 			victim.scrollTop = victim.scrollHeight+10000
 			return
 		,200
-		events = envelope.payload
-		console.log "Event payload", events
-		# for name,ev  of events.event
-			
-			#
-			# 'outb_publish': {
-			#	'do_outb_publish': True,
-			#   'match': True,
-			#   'outb_log': {
-			#		'cid': 328081,
-			#       'ctype': u'consolecmd',
-			#        'state': 'device_ok'}},
-
-		# 	if ev.type == 10 #ignore gps events
-		# 		return
-		# 	if ev.type == 12
-		# 		return
-
-		# 	try
-		# 		ocid = ev.outb_publish.outb_log.cid
-		# 	catch exception
-		# 		ocid = undefined
-			
-		# 	log = 
-		# 		ocid : ocid
-		# 		response : ev.taip
-		# 		unsolicited : true
-		# 		cmd : "...unsolicited..."
-
-		# 	console.log("check", ocid, $scope.sent_indexes)
-		# 	console.log($scope.sent_indexes[ocid])
-		# 	if ocid == undefined
-		# 		log.unsolicited = false
-		# 		$scope.history.push log
-		# 		console.log "log1",$scope.history
-
-		# 	else
-		# 		if $scope.sent_indexes[ocid] == undefined
-		# 			log.unsolicited = false
-		# 			$scope.history.push log
-		# 			console.log "log2",$scope.history
-		# 		else
-		# 			ind = $scope.sent_indexes[ocid]
-		# 			$scope.history[ind].response = ev.taip
-
-			#$scope.logs.push i
+		console.log "Event payload",$scope.resp
 		$scope.$apply()
 		return
 
 	connect = ()->
 		socket.emit 'authenticate', {'pegasus': $scope.auth.pegasus, "auth": $scope.token}
 		return
+	clean_payload = (payload)->
+		payload?._ver_core ?= '3.0.0'
+		if payload?._ver_core
+			_event = payload
+			payload =
+				pre: true
+				event: _event
+				_ver_core: _event?._ver_core
+		payload?.updates ?= ['event']
+		payload
 
 	$scope.toggle = (vehicle)->
 		console.log vehicle, vehicle in $scope.listening
@@ -107,6 +87,18 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 			$scope.stop vehicle
 		else
 			$scope.listen vehicle
+	process_cache = (events)->
+		for ev in events
+			clean = clean_payload ev.event?.outbresponse
+			$scope.resp.push clean_payload ev.event?.outbresponse
+		$timeout ()->
+			victim = angular.element(document.getElementById('scrollme'))[0]
+			victim.scrollTop = victim.scrollHeight+10000
+			return
+		, 200
+
+		return
+
 
 	$scope.listen = (vehicle)->
 		if vehicle is "all"
@@ -116,7 +108,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 
 		envelope = {namespace:"vehicle-events", objects: vehicle}
 		console.log("Emitting listening for 'vehicle-events' to server", envelope)
-		socket.emit 'listen', envelope
+		socket.emit 'listen', envelope, process_cache 
 		return
 
 	$scope.stop = (vehicle)->
@@ -161,7 +153,9 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		return
 
 	$scope.sendCmd = ()->
-		if $scope.command?.length == 0
+		# socket.emit 'events', $scope.response
+		$scope.load = true
+		if $scope.command?.length is 0
 			return
 		if $scope.listening.length is 0
 			return 
@@ -184,11 +178,13 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 						imei: data.imei
 						msg: data.msg
 					$scope.history.push log
+					$scope.load = false
 					# $scope.sent_indexes[ocid] = $scope.history.length - 1
 					console.log "History of command IDs",$scope.history
 				return
 			.catch (response)->
-				$scope.error = "Invalid commands"
+				$scope.error = "Invalid commands"+ " " + response.data.message
+				console.log response
 				return
 			return 
 	$scope.getVehicles = (page)->

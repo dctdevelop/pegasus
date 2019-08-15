@@ -62,26 +62,27 @@
 					</md-content>
 				</div>
 			</div>
-			<div class="col-xs-6" style='height: 450px; overflow-y:scroll; border: 1px solid black' id='scrollme'>
+			<div class="col-xs-5 md-whiteframe-1dp" style='height: 450px; overflow-y:scroll;padding-top: 0px;padding-left: 0px; padding-right: 0px' id='scrollme'>
+					<md-progress-linear md-mode="indeterminate" ng-show="load"></md-progress-linear>
+					<div layout-padding>
 					<div layout="row" flex="none">
 						<h3>Console</h3>
 						<span flex></span>
-						<md-button class='md-raised' ng-click='history=[];command=""'>Clear</md-button>
+						<md-button class='md-raised' ng-click='history=[];command="";resp=[]'>Clear</md-button>
 					</div>
 					<table style="font-family:monospace" class="table table-condensed table-striped" >
 						<tr>
-							<td>Outbox ID</td>
-							<td>Device ID</td>
-							<td>Command</td>
-							<td>Response</td>
+							<td hide-xs><b>Outbox ID</td>
+							<td><b>Device ID</td>
+							<td><b>Command</td>
+							<td><b>Response</td>
 						</tr>
-						<tr ng-repeat="log in history" >
-							<td>{{log.ocid}}</td>
+						<tr ng-repeat="log in history">
+							<td hide-xs>{{log.ocid}}</td>
 							<td>{{log.imei}}</td>
 							<td>{{log.cmd}}</td>
-							<td>{{log.msg}}</td>
-						</tr>
-						
+							<td class="md-caption">{{resp[$index].event.response || log.msg}}</td>
+						</tr>	
 					</table>
 					<br ng-if="!history.length">					
 					<div>
@@ -91,7 +92,7 @@
 						<md-button ng-click="sendCmd()" class="md-raised md-primary"><md-icon className="material-icons">send</md-icon></md-button>
 					</div>
 					<span ng-if="command">{{error}}</span>
-
+					</div>
 				</div>
 			</div>
 		</div>
