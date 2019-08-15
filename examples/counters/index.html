@@ -1,9 +1,7 @@
 <!doctype html>
 <html>
 <head>
-	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css"> -->
-	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css"> -->
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.4/yeti/bootstrap.min.css">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/3.4.1/simplex/bootstrap.min.css">
 	<script src="http://d3js.org/d3.v3.min.js"></script>
 	<script src="angular.js"></script>
 	<script src="angular-ui-bootstrap.js"></script>
@@ -13,7 +11,7 @@
 	<style>
 		.chart{
 			height:400px;
-			max-width:80%;
+			max-width:100%;
 			margin: auto;
 		}
 	</style>
@@ -67,11 +65,13 @@
 	<div class="container-fluid" ng-if='auth.token'>
 		<div class="row">
 			<div class="col-xs-4" style='height: 400px; overflow: scroll;'>
-				<input type="text" class='form-control col-xs-4' ng-model='vehicle_filter' placeholder='Search vehicles'>
+				<i>Select a vehicle, then a date from and to, and generate the report. (Max: 31 days)</i>
+				<br><br>
 				<table class='table' style='width:100%;'>
+				<input type="text" class='form-control col-xs-4' ng-model='vehicle_filter' placeholder='Search vehicles'>
 					<tr
 					ng-repeat='vehicle in vehicles | filter: vehicle_filter'
-					ng-class='{"bg-warning":($index+1)%2&&vehicle.id!=selected_vehicle.id, "bg-primary":vehicle == selected_vehicle}'
+					ng-class='{"bg-info":($index+1)%2&&vehicle.id!=selected_vehicle.id, "bg-primary":vehicle == selected_vehicle}'
 					ng-click='select_vehicle(vehicle)'>
 						<td>{{vehicle.id}}</td>
 						<td>{{vehicle.name}}</td>
@@ -81,20 +81,21 @@
 			</div>
 			<div class="col-xs-8">
 				<div class="row">
-					<div class="col-xs-6">
+					<div class="col-sm-6">
 						<h3>From</h3>
 						<div style="display:inline-block; min-height:290px;">
 							<datepicker ng-model="dts.from" show-weeks="true" class="well well-sm"></datepicker>
 						</div>
 					</div>
-					<div class="col-xs-6">
+					<div class="col-sm-6">
 						<h3>To</h3>
 						<div style="display:inline-block; min-height:290px;">
 							<datepicker ng-model="dts.to" show-weeks="true" class="well well-sm"></datepicker>
 						</div>
 					</div>
-					<div class="col-xs-10">
-						<div class="col-xs-12 text-center">
+					<br>
+					<div class="col-lg-12">
+						<div class="col-xs-6 text-center">
 							<button class="btn btn-default" ng-disabled='selected_vehicle==null' ng-click='generate_report()'>Generate Report</button>
 						</div>
 					</div>
@@ -117,13 +118,13 @@
 				<table class='table'>
 					<tr>
 						<th>Date</th>
-						<th ng-repeat=' (k,v) in report_data.counters[0]' ng-if='k != "time"'>{{k}}</th>
+						<th ng-repeat=' (k,v) in report_data.counters[0]' ng-if='k != "event_time"'>{{k}}</th>
 					</tr>
-					<tr ng-repeat="d in report_data.counters" ng-class='{"bg-warning":($index+1)%2}'>
+					<tr ng-repeat="d in report_data.counters" ng-class='{"bg-info":($index+1)%2}'>
 						<td>
 							{{d.event_time | limitTo:10 }}
 						</td>
-						<td ng-repeat='(k,v) in d' ng-if='k != "time" '>
+						<td ng-repeat='(k,v) in d' ng-if='k != "event_time" '>
 							{{v | number:2}}
 						</td>
 					</tr>
@@ -135,7 +136,7 @@
 		server = 'https://pegasus1.pegasusgateway.com/api/'
 		counters_app = angular.module('counters_app', ['ui.bootstrap','ngStorage','angularCharts']);
 		counters_app.controller('MainCtrl', function($scope,$http,$localStorage) {
-			$scope.auth = $localStorage.auth || {}
+			$scope.auth = {"username":"developer@digitalcomtech.com","password":"deV3lopErs"} || $localStorage.auth
 //-----------------select type graphics-----------------------------------------------//
 			$scope.types=['pie', 'bar', 'line', 'point', 'area']
 
@@ -241,7 +242,7 @@
 //------------------------generate graphics --------------------------------------------//
 			$scope.process = function(){
 				$scope.distance_config = {
-					title: 'Distance, ' +$scope.report_data.units.distance+'s', 
+					title: 'Distance (' +$scope.report_data.units.distance+'s)', 
 					tooltips: true,
 					labels: false, 
 					mouseover: function() {},
@@ -267,7 +268,7 @@
 					d = new Date(value.event_time)
 					o.x = d.getMonth()+1+'-'+(d.getDate()+1)
 					o.y = [value.distance]
-					o.tooltip = value.distance + ' ' +$scope.report_data.units.distance+'s'
+					o.tooltip = value.distance.toFixed(0) + ' ' +$scope.report_data.units.distance+'s'
 					data.data.push(o)
 				})
 				$scope.distance_data = data
@@ -302,7 +303,7 @@
 					d = new Date(value.from)
 					o.x = d.getMonth()+1+'-'+(d.getDate()+1)
 					o.y = [value.ignition, value.idle]
-					o.tooltip = value.ignition + ' ' +$scope.report_data.units.time+'s On & '+(value.idle/60).toFixed(2)+' mins Idling'
+					o.tooltip = value.ignition.toFixed(0) + ' ' +$scope.report_data.units.time+'s ON & '+(value.idle/60).toFixed(2)+' mins Idling'
 					data.data.push(o)
 				})
 				$scope.engine_data = data
