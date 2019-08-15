@@ -3,7 +3,6 @@ window.socket = socket
 
 app = angular.module('livecomms', ['ngMaterial'])
 app.controller "MainCtrl", ($scope, $http, $timeout)->
-	$scope.main = "Sup"
 	$scope.auth =
 		pegasus : "https://pegasus1.pegasusgateway.com"
 		username: "developer@digitalcomtech.com"
@@ -59,17 +58,17 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 	socket.on 'events', (events)->
 		victim = angular.element(document.getElementById('scrollme'))[0]
 		victim.scrollTop = victim.scrollHeight+10000
-		console.log "eventos",events
+		console.log "Event", events
 		events.map (i)->
 			console.log i
 			if $scope.ios.vid == i.vid
-				$scope.ios.io_pwr= if i.io_pwr != undefined && i.io_pwr!=null then i.io_pwr else $scope.ios.io_pwr
-				$scope.ios.io_ign= if i.io_ign != undefined && i.io_ign!=null then i.io_ign else $scope.ios.io_ign
-				$scope.ios.io_in1= if i.io_in1 != undefined && i.io_in1!=null then i.io_in1 else $scope.ios.io_in1
-				$scope.ios.io_in2= if i.io_in2 != undefined && i.io_in2!=null then i.io_in2 else $scope.ios.io_in2
-				$scope.ios.io_in3= if i.io_in3 != undefined && i.io_in3!=null then i.io_in3 else $scope.ios.io_in3
-				$scope.ios.io_out1= if i.io_out1 != undefined && i.io_out2!=null then i.io_out1 else $scope.ios.io_out1
-				$scope.ios.io_out2= if i.io_out2 != undefined && i.io_out2!=null then i.io_out2 else $scope.ios.io_out2
+				$scope.ios.io_pwr = if i.io_pwr != undefined && i.io_pwr!=null then i.io_pwr else $scope.ios.io_pwr
+				$scope.ios.io_ign = if i.io_ign != undefined && i.io_ign!=null then i.io_ign else $scope.ios.io_ign
+				$scope.ios.io_in1 = if i.io_in1 != undefined && i.io_in1!=null then i.io_in1 else $scope.ios.io_in1
+				$scope.ios.io_in2 = if i.io_in2 != undefined && i.io_in2!=null then i.io_in2 else $scope.ios.io_in2
+				$scope.ios.io_in3 = if i.io_in3 != undefined && i.io_in3!=null then i.io_in3 else $scope.ios.io_in3
+				$scope.ios.io_out1 = if i.io_out1 != undefined && i.io_out2!=null then i.io_out1 else $scope.ios.io_out1
+				$scope.ios.io_out2 = if i.io_out2 != undefined && i.io_out2!=null then i.io_out2 else $scope.ios.io_out2
 			$scope.logs.push i
 			console.log "logs",$scope.logs
 		$scope.$apply()
@@ -86,7 +85,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 			$scope.stop vehicle
 		else
 			$scope.listen vehicle
-		console.log "veh",vehicle
+		console.log "Entity", vehicle
 		_get_state(vehicle)
 		return
 
@@ -122,10 +121,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		$scope.load = true
 		console.log "Vehicle id: ",vehicle
 		if vehicle != null
-			console.log "set vehicle."
 			$scope.ios.vid = if $scope.ios.vid is null or $scope.ios.vid isnt vehicle then vehicle else $scope.ios.vid
-		else
-			console.log "Not set vehicle."
 		$http.get $scope.auth.pegasus+"/api/vehicles/"+$scope.ios.vid+"/remote/state"
 		.then (response)->
 			data = response.data
@@ -190,7 +186,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 			$scope.getVehicles()
 			return
 		.catch (response)->
-			$scope.error = "Invalid credentials."
+			$scope.error = "Invalid credentials"
 			return
 
 	$scope.destroy = ()->

@@ -19,7 +19,7 @@
 		<div class="container-fluid md-padding">
 			<div class="row">
 				<div class="col-xs-12">
-					<h3>Pegasus Gateway Live Communications</h3>
+					<h4>Pegasus Gateway Live Input/Output Communication</h4>
 				</div>
 			</div>
 			<div class="row" layout-padding>
@@ -37,12 +37,11 @@
 							<label>Password</label>
 							<input type="password" placeholder="password" ng-model='auth.password'>
 						</md-input-container>
+						<span style="text-align:center;" class='text-danger'>{{error}}</span>
 						<md-button class="md-primary md-raised" ng-click='authenticate();' 
 							ng-disabled='!(auth.pegasus.length && auth.username.length && auth.password.length)'>
 							Sign in
 						</md-button>
-						<h1 class='text-danger'>{{error}}</h1>
-						<span class='text-info'>{{message.message}}</span>
 					</form>
 					<div layout="column" layout-align="start">
 						<md-input-container md-no-float flex ng-show="vehicles.length > 0">
@@ -54,26 +53,25 @@
 					<div class="md-whiteframe-1dp" style='max-height: 400px; overflow-y: scroll' ng-show="vehicles.length > 0">
 						<table class="table table-condensed table-hover">
 							<tr ng-repeat='vehicle in vehicles_list | filter: _filter' ng-click='toggle(vehicle.id)' ng-class="{'bg-primary': listening.indexOf(vehicle.id) >= 0 }">
-								<td>{{vehicle.name}}</td>
+								<td>{{vehicle.name}} 
+									<span style="float:right;">ID-{{vehicle.id}}
+								</td>
 							</tr>
 						</table>
 					</div>
 				</div>
 				<div class="col-xs-6 md-whiteframe-1dp" style='height: 405px;'>
 					<h3>Inputs/Outputs</h3>
-					<h3 ng-if="ios.vid!=null"><small>Vehicle: {{ios.vid}}</small></h3>
-					<table class="table table-condensed table-striped">
-						<thead>
-							<tr>
-								<th>pwr</th>
-								<th>ign</th>
-								<th>in #1</th>
-								<th>in #2</th>
-								<th>in #3</th>
-							</tr>
-						</thead>
+					<table ng-if-start="ios.vid!=null" class="table table-condensed table-striped">
+						<tr>
+							<th>Main power</th>
+							<th>Ignition</th>
+							<th>Input 1</th>
+							<th>Input 2</th>
+							<th>Input 3</th>
+						</tr>
 						<tbody>
-							<tr ng-if="ios.vid!=null">
+							<tr>
 								<td ng-if="ios.io_pwr" style="color:green;">ON</td>
 								<td ng-if="!ios.io_pwr" style="color:red;">OFF</td>
 								<td ng-if="ios.io_ign" style="color:green;">ON</td>
@@ -88,15 +86,15 @@
 						</tbody>
 					</table>
 					<br/>
-					<table class="table table-condensed table-striped">
+					<table ng-if-end class="table table-condensed table-striped">
 						<thead>
 							<tr>
-								<th>out #1</th>
-								<th>out #2</th>
+								<th>Output 1</th>
+								<th>Output 2</th>
 							</tr>
 							
 						</thead>
-						<tbody ng-if="ios.vid!=null">
+						<tbody>
 							<tr>
 								<td ng-if="ios.io_out1" style="color:green;">ON</td>
 								<td ng-if="!ios.io_out1" style="color:red;">OFF</td>
@@ -105,40 +103,34 @@
 							</tr>
 							<tr>
 								<td>
-									<md-button ng-click="modify_output(1, true)" type="button" class="md-raised" style="background-color: green">Enabled</md-button>
+									<md-button ng-click="modify_output(1, true)" type="button" class="md-raised" style="background-color: green">Activate</md-button>
 								</td>
 								<td>
-									<md-button ng-click="modify_output(2, true)" type="button" class="md-raised" style="background-color: green">Enabled</md-button>
+									<md-button ng-click="modify_output(2, true)" type="button" class="md-raised" style="background-color: green">Activate</md-button>
 								</td>
 							</tr>
 							<tr>
 								<td>
-									<md-button ng-click="modify_output(1, false)" type="button" class="md-raised md-warn">Disabled</md-button>
+									<md-button ng-click="modify_output(1, false)" type="button" class="md-raised md-warn">Deactivate</md-button>
 								</td>
 								<td>
-									<md-button ng-click="modify_output(2, false)" type="button" class="md-raised md-warn">Disabled</md-button>
+									<md-button ng-click="modify_output(2, false)" type="button" class="md-raised md-warn">Deactivate</md-button>
 								</td>
-								
 							</tr>
-							
-							
 						</tbody>
 					</table>
 				</div>
 				
 				<div flex='none' layout="row" layout-align="end end" ng-show="logs.length > 0" style="padding-right: 0px;">
 					<div ng-if="alert.type=='SUCCESS'" sclass="alert alert-success" flex="none">
-				
-						<strong>SUCCESS! {{alert.msg}} </strong>
+						<span>{{alert.msg}} </span>
 					</div>
 					
 					<div ng-if="alert.type=='ERROR'" sclass="alert alert-danger">
-						<strong>Error!</strong> {{alert.msg}}
+						<span>{{alert.msg}}</span>
 					</div>
 					<md-button class='md-raised' ng-click='logs=[]'>Clear</md-button>
 				</div>
-			
-				
 				<div class="md-whiteframe-1dp" style='height: 240px; overflow-y:scroll; padding-top: 0px;padding-left: 0px; padding-right: 0px'>
 					<md-progress-linear md-mode="indeterminate" ng-if="load" style="position: absolute; width: 935px"></md-progress-linear>
 					<div layout-padding>
@@ -146,18 +138,19 @@
 							
 						<table class="table table-condensed table-striped">
 							<tr>
-								<td>ID</td>
-								<td>time</td>
-								<td>io_ign</td>
-								<td>io_in1</td>
-								<td>io_in2</td>
-								<td>io_in3</td>
-								<td>io_out1</td>
-								<td>io_out2</td>
+								<td>Entity</td>
+								<td>Time</td>
+								<td>Ignition</td>
+								<td>Input 1</td>
+								<td>Input 2</td>
+								<td>Input 3</td>
+								<td>Output 1</td>
+								<td>Output 2</td>
 							</tr>
 							<tr ng-repeat-start="log in logs" ng-click=''>
 								<td>{{log.id}}</td>
-								<td>{{log.evtime | date: 'HH:mm:ss'}}</td>
+								<!-- <td>{{log.evtime | date: 'HH:mm:ss'}}</td> -->
+								<td>{{log.evtime * 1000 | date:'EEEE, MMM d, y h:mm:ss a'}}</td>
 								<td>{{log.io_ign}}</td>
 								<td>{{log.io_in1}}</td>
 								<td>{{log.io_in2}}</td>
