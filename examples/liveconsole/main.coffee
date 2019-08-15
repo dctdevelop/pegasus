@@ -43,14 +43,13 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		return
 
 	socket.on 'events', (envelope)->
-		console.log "eventos",envelope
 		$timeout ()->
 			victim = angular.element(document.getElementById('scrollme'))[0]
 			victim.scrollTop = victim.scrollHeight+10000
 			return
 		,200
 		events = envelope.payload
-		console.log "ev",events
+		console.log "Event payload", events
 		# for name,ev  of events.event
 			
 			#
@@ -116,7 +115,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 			$scope.listening.push(vehicle)
 
 		envelope = {namespace:"vehicle-events", objects: vehicle}
-		console.log('emitting listen to server', envelope)
+		console.log("Emitting listening for 'vehicle-events' to server", envelope)
 		socket.emit 'listen', envelope
 		return
 
@@ -126,7 +125,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		else
 			$scope.listening.splice($scope.listening.indexOf(vehicle), 1)
 
-		console.log('emitting stop to server', vehicle)
+		console.log("Emitting 'stop:vehicles' to server", vehicle)
 		socket.emit 'stop:vehicles', vehicle
 		return
 
@@ -148,7 +147,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 			$http.defaults.headers.common.Authenticate = $scope.token
 			return
 		.catch (response)->
-			$scope.error = "Invalid credentials."
+			$scope.error = "Invalid credentials"
 			return
 
 	$scope.destroy = ()->
@@ -166,7 +165,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 			return
 		if $scope.listening.length is 0
 			return 
-		console.log("sending to ", $scope.listening)
+		console.log("Sending to the following entity IDs", $scope.listening)
 		vids = $scope.listening 
 		post_data = 
 			cmd : $scope.command
@@ -176,20 +175,20 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 			$http.post(uri, post_data)
 			.then (response)->
 				data = response.data
-				console.log "pp",data
-				if data.oids
+				console.log "Remote request response",data
+				if data.oids[0]
 					ocid = data.oids[0]
-					# console.log(ocid)
 					log = 
 						ocid : ocid
 						cmd : post_data.cmd
 						imei: data.imei
+						msg: data.msg
 					$scope.history.push log
 					# $scope.sent_indexes[ocid] = $scope.history.length - 1
-					console.log "{}",$scope.history
+					console.log "History of command IDs",$scope.history
 				return
 			.catch (response)->
-				$scope.error = "Invalid COMMANDS"
+				$scope.error = "Invalid commands"
 				return
 			return 
 	$scope.getVehicles = (page)->
@@ -199,7 +198,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		.then (response)->
 			data = response.data
 			$scope.vehicles_lis = $scope.vehicles_lis.concat(data.data)
-			console.log "data", $scope.vehicles_lis
+			console.log "Data", $scope.vehicles_lis
 			if page != data.pages
 				$scope.getVehicles page + 1
 			return
