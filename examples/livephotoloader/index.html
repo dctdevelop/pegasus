@@ -19,7 +19,7 @@
 		<div class="container-fluid md-padding">
 			<div class="row">
 				<div class="col-xs-6">
-					<h3>Pegasus Gateway Live Communications</h3>
+					<h3>Pegasus Gateway Live Photoloader</h3>
 					<form class="form" layout="column" flex>
 					  <md-input-container md-no-float>
 					    <label>Pegasus</label>
@@ -33,19 +33,15 @@
 					    <label>Password</label>
 					    <input type="password" placeholder="Password" ng-model='auth.password'>
 					  </md-input-container>
+					  <span style="text-align:center;" class='text-danger'>{{auth_error}}</span>
 					  <md-button class="md-raised md-primary"
 					  	ng-click='authenticate()'
 					  	ng-disabled='!(auth.pegasus.length && auth.username.length && auth.password.length)'>
-					  		Sign in
+					  	Sign in
 					  	</md-button>
-						  <h5 class='text-info'>{{message.message}}</h5>
-						  <h5 class='text-danger'>{{error}}</h5>
 						</form>
-						<h4>
-							vehicles
-							<md-button class="md-primary md-raised" ng-click="listen('all');" >All</md-button>
-							<md-button class="md-accent md-raised" ng-click="stop('all');">Stop All</md-button>
-						</h4>
+						<md-button class="md-primary md-raised" ng-click="listen('all');" >Select All</md-button>
+						<md-button class="md-accent md-raised" ng-click="stop('all');">Stop All</md-button>
 					<md-input-container>
 						<input type="text" placeholder="Search" ng-model='_filter'>
 					</md-input-container>
@@ -57,29 +53,26 @@
 							</div>
 						</div>
 					</div>
+					<div><pre>{{error}}</pre></div>
 				</div>
-				<h3>Console <button class='btn btn-default' ng-click='logs=[]'>Clear</button></h3>
-				<div class="col-xs-6" style='height: 600px; overflow-y:scroll;' id='scrollme' ng-if="logs.length">
-					<table class="table table-condensed table-striped" style='border: 1px solid black'>
+				<h3>Console <button class="btn btn-default" ng-click="logs=[]">Clear</button></h3>
+				<div class="col-xs-6" style="height: 900px; overflow-y:scroll;" id="scrollme" ng-if="logs.length">
+					<table class="table table-condensed table-striped">
 						<tr>
-							<td>ID</td>
-							<td>time</td>
-							<td>type</td>
-							<td>code</td>
-							<td>label</td>
+							<td>Entity</td>
+							<td>Time</td>
+							<td>Label</td>
 						</tr>
 						<tr ng-repeat-start="log in logs">
-							<td>{{log.event.vid}}</td>
-							<td>{{log.event.event_time | date: 'HH:mm:ss'}}</td>
-							<td>{{log.event.type}}</td>
-							<td>{{log.event.code}}</td>
-							<td>{{log.event.label || 'trckpt'}}</td>
+							<td>{{log.primary.name}} ID-{{log.primary.id}}</td>
+							<td>{{log.event.event_time * 1000 | date:'EEEE, MMM d, y h:mm:ss a'}}</td>
+							<td>{{log.event.label || 'trckpnt'}}</td>
 						</tr>
 						<tr nng-if='log.pi || log.label=="photo" || log.has_photo>0'>
 							<td colspan='5'>
 								<md-button class='md-raised md-primary' ng-click="load_photo(log)">photo available</md-button>
-								<img ng-repeat-start="photo in log.photo_data.photos" ng-if="photo.status_no == 4"
-									ng-src="data:image/jpeg;base64, {{photo.b64data}}" style='width:100%'>
+								<br><img ng-repeat-start="photo in log.photo_data.photos" ng-if="photo.status_no == 4"
+									ng-src="data:image/jpeg;base64, {{photo.b64data}}" style='width:33%'>
 								<p ng-repeat-end ng-if='photo.status_no != 4'>
 									{{photo.status}}
 								</p>
@@ -96,8 +89,6 @@
 							<td class='text-info' colspan='3'>{{log.outb_publish}}</td>
 						</tr>
 					</table>
-					<h5 class='text-danger'>{{error}}</h5>
-					<!-- <div style="height: 300px"></div> -->
 				</div>
 			</div>
 		</div>

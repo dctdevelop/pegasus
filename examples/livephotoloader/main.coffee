@@ -23,7 +23,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 
 	socket.on '_error', (message)->
 		console.error message
-		$scope.error = error
+		$scope.error = message
 		$scope.$apply()
 		return
 
@@ -131,8 +131,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 			data = response.data
 			log.photo_data = data
 		.catch (response) ->
-			$scope.error = "vehicle does not have any photos"+ ' ' + log.event?.vid  
-			console.log $scope.error +" "+log.event?.vid
+			$scope.error = response.data.message + ', ID-' + log.event?.vid
 	
 	$scope.stop = (vehicle)->
 		if vehicle is "all"
@@ -145,7 +144,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		return
 
 	$scope.authenticate = ()->
-		$scope.error = null
+		$scope.auth_error = null
 		$scope.vehicles = []
 		$scope.logs = []
 		$scope.listening = []
@@ -154,14 +153,14 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
 		.then (response)->
 			data = response.data
-			$scope.message = "Succesfully connected, establishing live communications"
+			$scope.message = "Successfully connected, establishing live communications"
 			$scope.token = data.auth
 			$http.defaults.headers.common.Authenticate = data.auth
 			connect()
 			$scope.getVehicles()
 			return
 		.catch (response)->
-			$scope.error = "Invalid credentials." + " " + response.data.message 
+			$scope.auth_error = response.data.message 
 			return
 	$scope.getVehicles = (page)->
 		if page is undefined
@@ -175,7 +174,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 				$scope.getVehicles page + 1
 			return
 		.catch (response)->
-			$scope.error = "Invalid vehicles"
+			$scope.error = response
 			return
 		return
 	$scope.destroy = ()->
