@@ -48,14 +48,16 @@
 					</div>
 					<md-content layout="row" layout-wrap class="md-whiteframe-z1" style='height: 194px;'>
 						<div 
-							flex="25" 
+							flex="33"
 							layout="column" 
 							layout-align="center center" 
 							class="text-center md-whiteframe-z1"
-							ng-repeat='vehicle in vehicles_lis | filter: _filter' ng-click='toggle(vehicle.id)'
+							ng-if="vehicle.device.version.device == 'syrus'"
+							ng-repeat='vehicle in vehicles_list | filter: _filter' ng-click='toggle(vehicle.id)'
 							ng-class='{"bg-info": listening.indexOf(vehicle.id) >= 0 }'>
 							<span class="md-body-2">{{vehicle.name}}</span>
-							<span class="md-caption">{{vehicle.device}}</span>
+							<span class="md-caption">{{vehicle.device.imei}}</span>
+							<span class="md-caption" style="text-transform: capitalize;">{{vehicle.device.version.device}} {{vehicle.device.version.number}} {{vehicle.device.version.vkey_interface}}</span>
 						</div>
 					</md-content>
 				</div>

@@ -14,7 +14,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 	$scope.sent_indexes = {}
 	$scope.listening = []
 	$scope.pendings = []
-	$scope.vehicles_lis = []
+	$scope.vehicles_list = []
 
 	socket.on '_authenticated', (data)->
 		console.log data
@@ -194,11 +194,11 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 	$scope.getVehicles = (page)->
 		if page is undefined
 			page = 1
-		$http.get($scope.auth.pegasus+"/api/"+'vehicles?page='+page)
+		$http.get($scope.auth.pegasus+"/api/"+'vehicles?select=device:version,name&page='+page)
 		.then (response)->
 			data = response.data
-			$scope.vehicles_lis = $scope.vehicles_lis.concat(data.data)
-			console.log "Data", $scope.vehicles_lis
+			$scope.vehicles_list = $scope.vehicles_list.concat(data.data)
+			console.log "Vehicle list", $scope.vehicles_list
 			if page != data.pages
 				$scope.getVehicles page + 1
 			return
