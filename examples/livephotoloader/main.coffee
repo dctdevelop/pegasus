@@ -93,20 +93,9 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 			$scope.stop vehicle
 		else
 			$scope.listen vehicle
-		# $scope.load_photo()
+		
+		load_photo(vehicle)
 
-	process_cache = (events)->
-		for ev in events
-			clean = clean_payload ev
-			$scope.logs.push clean_payload ev
-		console.log $scope.logs
-		$timeout ()->
-			victim = angular.element(document.getElementById('scrollme'))[0]
-			victim?.scrollTop = victim?.scrollHeight+10000
-			return
-		, 200
-
-		return
 	$scope.listen = (vehicle)->
 	
 		if $scope.vehicles.length is 0	
@@ -115,7 +104,6 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 			$scope.listening = $scope.vehicles
 		else
 			$scope.listening.push(vehicle)
-		
 
 		envelope = {namespace:"vehicle-events", objects: vehicle}
 		console.log('emitting listen to server', envelope)
@@ -123,15 +111,34 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 
 		return
 
-	$scope.load_photo = (log)->
-		if !log.event?.vid
+	process_cache = (events)->
+		for ev in events
+			console.log "e",ev.primary_id
+			clean = clean_payload ev
+			$scope.logs.push clean_payload ev
+		console.log "full",$scope.logs
+		$timeout ()->
+			victim = angular.element(document.getElementById('scrollme'))[0]
+			victim?.scrollTop = victim?.scrollHeight+10000
 			return
-		$http.get("#{$scope.auth.pegasus}/api/vehicles/"+log.event?.vid+"/plugins/photocam/last")
+		, 200
+
+		return
+	photoinfo = []
+	load_photo = (vehicle)->
+		console.log "vid", vehicle
+		if !vehicle
+			return
+		$http.get("#{$scope.auth.pegasus}/api/vehicles/"+vehicle+"/plugins/photocam/last")
 		.then (response)->
 			data = response.data
-			log.photo_data = data
+			$scope.log_photo_data = data.photos
+			console.log "photo",$scope.log_photo_data
+			# for p in $scope.log_photo_data
+			# 	photoinfo[vehicle].push p
+			# console.log "phot",photoinfo,vehicle		
 		.catch (response) ->
-			$scope.error = response.data.message + ', ID-' + log.event?.vid
+			$scope.error = response.data?.message + ', ID-' + vehicle
 	
 	$scope.stop = (vehicle)->
 		if vehicle is "all"

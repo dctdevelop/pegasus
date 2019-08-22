@@ -47,9 +47,10 @@
 					</md-input-container>
 					<div class="md-margin">
 						<div class='row md-whiteframe-1dp' style='height: 262px; overflow-y: scroll;'>
-							<div layout="column" class="col-xs-4 text-center md-whiteframe-1dp" ng-repeat='vehicle in vehicles_list | filter: _filter' ng-click='toggle(vehicle.id);load_photo(vehicle)' ng-class='{"bg-info": listening.indexOf(vehicle.id) >= 0 }'>
+							<div layout="column" class="col-xs-4 text-center md-whiteframe-1dp" ng-repeat='vehicle in vehicles_list | filter: _filter' ng-click='toggle(vehicle.id)' ng-class='{"bg-info": listening.indexOf(vehicle.id) >= 0 }'>
 								<B>ID-{{vehicle.id}}</B>
 								<span class="md-body-1">{{vehicle.name}}</span>
+								<span class="md-caption">{{vehicle.device}}</span>
 							</div>
 						</div>
 					</div>
@@ -63,31 +64,31 @@
 							<td>Time</td>
 							<td>Label</td>
 						</tr>
-						<tr ng-repeat-start="log in logs">
+						<tr ng-repeat="log in logs">
 							<td>{{log.primary.name}} ID-{{log.primary.id}}</td>
 							<td>{{log.event.event_time * 1000 | date:'EEEE, MMM d, y h:mm:ss a'}}</td>
 							<td>{{log.event.label || 'trckpnt'}}</td>
 						</tr>
-						<tr nng-if='log.pi || log.label=="photo" || log.has_photo>0'>
-							<td colspan='5'>
-								<md-button class='md-raised md-primary' ng-click="load_photo(log)">photo available</md-button>
-								<br><img ng-repeat-start="photo in log.photo_data.photos" ng-if="photo.status_no == 4"
-									ng-src="data:image/jpeg;base64, {{photo.b64data}}" style='width:33%'>
-								<p ng-repeat-end ng-if='photo.status_no != 4'>
-									{{photo.status}}
-								</p>
-							</td>
+						<tr>
+							<td colspan='5'  ng-if="log_photo_data.length">
+								<div>
+									<img ng-repeat-start="photo in log_photo_data"  nng-if="photo.status_no == 4"
+										ng-src="data:image/jpeg;base64, {{photo.b64data}}" style='width:33%'>
+									<pre ng-repeat-end>{{photo.status}} {{photo.imei}}</pre>
+									</div>
+								
+							</td> 
 						</tr>
 						<tr ng-if='log.taip.indexOf("RTX")'>
 							<td></td>
 							<td>Message</td>
 							<td class='text-warning' colspan='3'>{{log.taip}}</td>
 						</tr>
-						<tr ng-repeat-end ng-if='log.outb_publish'>
+						<!-- <tr ng-repeat-end ng-if='log.outb_publish'>
 							<td></td>
 							<td>Message</td>
 							<td class='text-info' colspan='3'>{{log.outb_publish}}</td>
-						</tr>
+						</tr> -->
 					</table>
 				</div>
 			</div>
