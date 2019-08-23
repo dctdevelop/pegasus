@@ -1,249 +1,112 @@
-<!DOCTYPE html>
-<!--
-@Author DCT developer Team.
-@email pegasus.developers@digitalcomtech.com
-@version 0.1
-@date OCT 19 2015
-::::Description:::
-Pegasus API - sample one-page-app.
--->
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <meta name="description" content="">
-    <meta name="author" content="">
+<!doctype html>
+<html>
+	<head>
+		<title>Pegasus API Examples - Rawdata</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-animate.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-aria.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.1.4/angular-material.min.js"></script>
+		<!-- <script src="moment.js"></script> -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.1.4/angular-material.min.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.slim.js"></script>
+		<!-- <script src="socket.io.js"></script> -->
+		<script src="main.coffee" type='text/coffeescript'></script>
+		<script src="coffee-script.js"></script>
+	</head>
+	<body layout='column' ng-controller="MainCtrl" layout-padding>
+		<h3 class="md-display-1">Simple query to Raw Data</h3>
+		<div flex="none" layout="row">
+			<div layout="column" flex>
+				<md-input-container md-no-float>
+					<label>Gateway</label>
+					<input type="text" placeholder="https://gateway.com" ng-model='auth.pegasus'>
+				</md-input-container>
+				<md-input-container md-no-float>
+					<label>Username</label>
+					<input type="text" placeholder="username" ng-model='auth.username'>
+				</md-input-container>
+				<md-input-container md-no-float>
+					<label>Password</label>
+					<input type="password" placeholder="password" ng-model='auth.password'>
+				</md-input-container>
+				<md-button class="md-primary md-raised" ng-click='authenticate();'
+					ng-disabled='!(auth.pegasus.length && auth.username.length && auth.password.length)'>
+					Sign in
+				</md-button>
+				<!-- <h5 class='text-danger'>{{error}}</h5>
+				<h5 class='text-info' style="overflow:auto;">{{message}}</h5> -->
+				<div layout="column" flex>
+					<div layout="row" layout-align="start center">
+						<md-input-container md-no-float flex>
+							<md-icon>search</md-icon>
+							<input type="text" placeholder="Search" ng-model='_filter'>
+						</md-input-container>
+					</div>
+					<md-content layout="row" layout-wrap class="md-whiteframe-z1" style='height: 190px;'>
+						<div 
+							flex="33"
+							layout="column" 
+							layout-align="center center" 
+							class="text-center md-whiteframe-z1"
+							ng-if="vehicle.device.version.device == 'syrus'"
+							ng-repeat='vehicle in vehicles_list | filter: _filter' ng-click='toggle(vehicle.id)'
+							ng-class="{'bg-primary': vehicle.id==id   }">
+							<span class="md-body-2">{{vehicle.name}}</span>
+							<span class="md-caption">{{vehicle.device.imei}}</span>
+							<span class="md-caption" style="text-transform: capitalize;">{{vehicle.device.version.device}} {{vehicle.device.version.number}} {{vehicle.device.version.vkey_interface}}</span>
+						</div>
+					</md-content>
 
-    <title>Pegasus API Examples - Rawdata</title>
-
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.0/yeti/bootstrap.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
-
-    <!-- Custom styles for this template -->
-    <link href="css/signin.css" rel="stylesheet">
-
-    <!-- JQuery -->
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-
-    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
-    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
-    <script src="js/ie-emulation-modes-warning.js"></script>
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!--[if lt IE 9]>
-    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-</head>
-<body>
-    <!-- Page container -->
-    <div class="container">
-        <header class="row">
-            <div class="col-md-6">
-                <h2>
-                    Simple query to Raw Data
-                </h2>
-                <h4 id="header_source"></h4>
-            </div>
-            <div class="col-md-6">
-                <h4 id="header_username" style="float:right;"></h4>
-            </div>
-        </header>
-        <!--BEGIN  Sign in form -->
-        <form class="form-signin" id="form-signin">
-            <h2 class="form-signin-heading">Pegasus sign in</h2>
-            <label for="inputUsername" class="sr-only">Email address</label>
-            <input type="text" id="inputUsername" class="form-control" placeholder="Username" required autofocus>
-            <label for="inputPassword" class="sr-only">Password</label>
-            <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" value="remember-me"> Remember me
-                </label>
-            </div>
-            <button onClick="signin();" class="btn btn-lg btn-primary btn-block" type="button">Sign in</button>
-        </form>
-        <!--END  Sign in form -->
-
-        <!-- Main container -->
-        <section id="main-content">
-            <!-- Vehicles List -->
-            <select class="form-control">
-            </select>
-            <br/>
-            <!--BEGIN Slide bar -->
-            <p>
-                <label for="range" id="range_label">Date range:</label>
-                <input type="text" id="range" readonly style="border:0; color:#f6931f; font-weight:bold;">
-            </p>
-            <div id="slider-range"></div>
-            <!--END Slide bar -->
-            <br/>
-            <br/>
-            <!-- button for request to rawdata -->
-            <input class="btn btn-default" type="button" value="Get RawData" id="request-button">
-            <br/>
-            <br/>
-            <!-- Table of results -->
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th>Vehicle ID</th>
-                        <th>Event time</th>
-                        <th>Type</th>
-                        <th>Label</th>
-                        <th>Position</th>
-                        <th>Device IMEI</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table
-            </section>
-        </div> <!--END container -->
-
-
-        <script>
-
-        var source = "https://pegasus1.pegasusgateway.com/api";//URL our pegasus site
-        var to = new Date(); // To current date.
-        var from = new Date("september 20, 2015 00:01:00"); // From
-        var oneDay = 24*60*60*1000;
-
-        //calc the diference in days.
-        var diffDays = Math.round(Math.abs((to.getTime() - from.getTime())/(oneDay)));
-        var token = null;
-
-        var from_value;
-        var to_value;
-        var from_date;
-        var to_date;
-
-        //When app start
-        $(document).ready(function() {
-            $('#inputUsername').val("developer@digitalcomtech.com");
-            $('#inputPassword').val("dctdevelop");
-            $("header div h4#header_source").html("API: "+source);
-            $('#main-content').hide();
-            $button = $('#main-content #request-button').click(function(){
-                populateTable();
-            });
-        });
-
-        //initial state for de slide bar.
-        $(function() {
-            $( "#slider-range" ).slider({
-                range: true,
-                min: 1,
-                max: diffDays,
-                values: [ diffDays - 1, diffDays ],
-                slide: DateChange
-            });
-            calcDate();
-        });
-
-        //Slider bar change event
-        function DateChange( event, ui ){
-            calcDate();
-        }
-
-        //calcule date from change event
-        function calcDate(){
-            from_value = $( "#slider-range" ).slider( "values", 0 );
-            to_value = $( "#slider-range" ).slider( "values", 1 );
-            from_date = new Date("september 20, 2015 00:01:00");
-            to_date = new Date();
-            from_date.setDate(from_date.getDate()+from_value);
-            to_date.setDate(to_date.getDate()-(diffDays - to_value));
-            $( "#range_label" ).html( "From: "+ from_date +" - To: "+to_date );
-        }
-
-        //Mount vehicles list.
-        function populateVehicles(){
-            if (token!=null){
-                $select = $('#main-content select')
-                $.ajax({ //Build vehicles request
-                    type: "GET",
-                    headers:{Authenticate:token},
-                    url: source+"/vehicles",
-                    success: function(data){
-                        $.each(data.data, function(key, item){
-                            var $option = $('<option/>').attr({
-                                value:item.id,
-                            }).text(item.name);
-
-                            $select.append($option)
-                        });
-                    }
-                });
-
-            }
-        }
-
-        //Populate table result from rawdata request.
-        function populateTable(){
-            if (token!=null){
-                $tbody = $('#main-content table tbody')
-                $tbody = $('#main-content table tbody').html("");
-                $.ajax({
-                    type: "GET",
-                    data: {vehicles:$("#main-content select").val(),basic:1,filter:"valid_position", from:from_date.toISOString().split('.')[0], to:to_date.toISOString().split('.')[0]},
-                    headers:{Authenticate:token},
-                    url: source+"/rawdata",
-                    success: function(data){
-                        console.log(data);
-                        $.each(data.events, function(key, item){
-                            var $tr = $('<tr/>');
-                            var $vid = $('<td/>').html(item.vid);
-                            $tr.append($vid);
-
-                            var $evtime = $('<td/>').html(item.event_time);
-                            $tr.append($evtime);
-
-                            var $type = $('<td/>').html(item.type);
-                            $tr.append($type);
-
-                            var $label = $('<td/>').html(item.label);
-                            $tr.append($label);
-
-                            var $a = $('<a/>').html(item.lat+","+item.lon);
-                            $a.attr("target", "_blank");
-                            $a.attr("href", "http://maps.google.com/maps?t=m&q=loc:"+item.lat+"+"+item.lon);
-
-                            var $position = $('<td/>').append($a);
-                            $tr.append($position);
-
-                            var $device = $('<td/>').html(item.device_id);
-                            $tr.append($device);
-
-                            $tbody.append($tr);
-                        });
-                    }
-                });
-            }
-        }
-
-        //Sign in on pegasus
-        function signin(){
-            username = $('#inputUsername').val();
-            pass = $('#inputPassword').val();
-            if(pass.length > 0 && username.length > 0){
-                //Build post request
-                $.post( source+"/login", {username: username, password:pass}, function( data, textStatus, jqxhr ) {
-                    $("header div h4#header_username").html(username);
-                    token = data.auth;
-                    $('#main-content').show()
-                    $('#form-signin').hide()
-                    populateVehicles();
-                });
-            }
-        }
-        </script>
-    </body>
-    </html>
+				</div>
+				<div layout="row" ng-if="vehicles_list.length > 0" layout-padding>
+					<div layout="column" flex-order="1" flex-order-gt-sm="0">
+						<md-subheader>Start Date</md-subheader>
+						<md-calendar ng-model="date_from.from"></md-calendar>
+					</div>
+					<div layout="column" flex-order="1" flex-order-gt-sm="1">
+						<md-subheader>End Date</md-subheader>
+						<md-calendar ng-model="date_to.to"></md-calendar>
+					</div>
+					<div layout="column" flex-order="0" flex-order-gt-sm="2">
+						<md-subheader>Dates</md-subheader>
+						<div>
+							<label>Start</label>
+							<div>{{date_from.from | date:shortDate}}</div>
+						</div>
+						<div><label>End</label>
+							<div>{{date_to.to | date:shortDate}}</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-xs-5 md-whiteframe-1dp" style='height: 614px; overflow-y:scroll;padding-top: 0px;padding-left: 0px; padding-right: 0px' id='scrollme'>
+					<md-progress-linear md-mode="indeterminate" ng-show="load" style="position: absolute;"></md-progress-linear>
+					<table style="font-family:monospace" class="table table-condensed table-striped" >
+						<tr>
+							<td><b>ID</td>
+							<td><b>Event time</td>
+							<td><b>Type</td>
+							<td><b>Label</td>
+							<td><b>Position</td>
+							<td><b>Device IMEI</td>
+						</tr>
+						<tr ng-repeat="log in events_raw">
+							<td>{{log.vid}}</td>
+							<td>{{log.event_time | date:'MMM d, y h:mm:ss a'}}</td>
+							<td>{{log.type}}</td>
+							<td>{{log.label}}</td>
+							<td><a ng-href="http://maps.google.com/maps?t=m&q=loc:{{log.lat}},{{log.lon}}" target="_blank">{{log.lat}},{{log.lon}}</a></td>
+							
+							<td>{{log.device_id}}</td>
+						</tr>	
+					</table>
+					<br ng-if="!history.length">					
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
