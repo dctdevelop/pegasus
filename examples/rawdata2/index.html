@@ -3,17 +3,19 @@
 <head>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.0/yeti/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.1.4/angular-material.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-animate.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.1/angular-aria.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-material/1.1.4/angular-material.min.js"></script>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="angular.js"></script>
     <script src="angular-ui-bootstrap.js"></script>
     <script src="ngStorage.min.js"></script>
     <script src="angular-charts.js"></script>
-    <style>
-        .chart{
-            height:400px;
-            width:100%;
-        }
-    </style>
+    <script src="main.js"></script>
 </head>
 <body ng-app="counters_app" ng-controller="MainCtrl" ng-cloak>
     <div class="container-fluid">
@@ -29,15 +31,19 @@
                 <form class="form-horizontal" role="form">
                     <div class="form-group">
                         <div class="col-xs-12" style="height:150px;"></div>
-                        <label for="inputEmail3" class="col-sm-2 control-label">Username</label>
-                        <div class="col-sm-10">
-                            <input type="text" class="form-control" id="inputEmail3" placeholder="Email" ng-model='auth.username'>
+                        <!-- <label for="inputEmail3" class="col-sm-2 control-label">Username</label> -->
+                        <div class="col-sm-10" layout="column">
+                            <md-input-container>
+                                <input type="text" cclass="form-control" id="inputEmail3" placeholder=" Username (Email)" ng-model='auth.username'>
+                            </md-input-container>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="inputPassword3" class="col-sm-2 control-label">Password</label>
-                        <div class="col-sm-10">
-                            <input type="password" class="form-control" id="inputPassword3" placeholder="Password" ng-model='auth.password'>
+                        <!-- <label for="inputPassword3" class="col-sm-2 control-label">Password</label> -->
+                        <div class="col-sm-10" layout="column">
+                            <md-input-container>
+                                <input type="password" cclass="form-control" id="inputPassword3" placeholder="Password" ng-model='auth.password'>
+                            </md-input-container>
                         </div>
                     </div>
                     <div class="form-group">
@@ -51,7 +57,7 @@
                     </div>
                     <div class="form-group">
                         <div class="col-sm-offset-2 col-sm-10">
-                            <button type="submit" class="btn btn-primary" ng-click='login()'>Login</button>
+                            <md-button type="submit" class="md-raised md-primary" ng-click='login()'>Login</md-button>
                         </div>
                     </div>
                 </form>
@@ -63,16 +69,18 @@
     </div>
     <div class="container-fluid" ng-show='auth.token'>
         <div class="row">
-            <div class="col-xs-4" style='height: 400px; overflow: scroll;'>
-                <input type="text" class='form-control col-xs-4' ng-model='vehicle_filter' placeholder='Search vehicles'>
+            <div class="col-xs-4 md-whiteframe-z1" style='height: 400px; overflow: scroll;'>
+                <md-input-container flex layout="column" md-no-float class="md-block">
+                    <input type="text" ng-model='vehicle_filter' placeholder='Search vehicles'>
+                </md-input-container>
                 <table class='table' style='width:100%;'>
                     <tr
-                    ng-repeat='vehicle in vehicles | filter: vehicle_filter'
+                    ng-repeat='vehicle in vehicles_list | filter: vehicle_filter'
                     ng-class='{"bg-warning":($index+1)%2&&vehicle.id!=selected_vehicle.id, "bg-primary":vehicle == selected_vehicle}'
                     ng-click='select_vehicle(vehicle)'>
                         <td>{{vehicle.id}}</td>
                         <td>{{vehicle.name}}</td>
-                        <td>{{vehicle.device}}</td>
+                        <td>{{vehicle.device.imei}}</td>
                     </tr>
                 </table>
             </div>
@@ -148,134 +156,6 @@
             </div>
         </div>
     </div>
-    <script>
-        function to_url(data){
-            url = Object.keys(data).map(function(k) {
-                return encodeURIComponent(k) + '=' + encodeURIComponent(data[k])
-            }).join('&')
-            return url
-        }
-        server = 'https://pegasus1.pegasusgateway.com/api/'
-        counters_app = angular.module('counters_app', ['ui.bootstrap','ngStorage','angularCharts']);
-        counters_app.controller('MainCtrl', function($scope,$http,$localStorage) {
-            //$localStorage.$reset()
-            $scope.server = server
-            $localStorage.$default({auth:{}, report_data:{}, vehicle:null })
-            $scope.report_data = $localStorage.report_data
-            $scope.auth = $localStorage.auth
-            $scope.selected_vehicle = $localStorage.vehicle
-            $scope.vehicles = []
-            $scope.loading = {}
 
-            $scope.dateOptions = {
-                formatYear: 'yy',
-                startingDay: 1
-            };
-            $scope.dts = {
-                today : new Date(),
-                from : new Date(),
-                to: new Date(),
-                same : true,
-                open: {to:false, from:false}
-            }
-            $scope.format = 'yyyy-MM-dd'
-            $scope.toggle_dt = function(picker,$event){
-                $event.preventDefault();
-                $event.stopPropagation();
-                $scope.dts.open[picker] = !$scope.dts.open[picker]
-            }
-
-            $scope.login_check = function(){
-                $http.get(server+'login')
-                .success(function(data) {
-                    $scope.get_vehicles()
-                })
-                .error(function(data,s,h) {
-                    $scope.auth.token = undefined
-                    console.log("-----Error-----")
-                });
-            }
-            $scope.logout = function(){
-                $scope.auth.token = undefined
-                //make actual logout request
-                $http.get(server+'logout')
-                success(function(data){
-                    //pass
-                })
-                $localStorage.auth = undefined
-            }
-            $scope.login = function(){
-            	$http.post(server+'login',$scope.auth)
-            	.success(function(data) {
-                	$scope.message = data.message
-                    $scope.auth.token = data.auth
-                    if($scope.auth.save){
-                        $localStorage.auth=auth
-                    }
-                    $scope.get_vehicles()
-                    $http.defaults.headers.common.Authenticate = data.auth
-                })
-                .error(function(data,s,h) {
-            		console.log(data,s,h)
-                	console.log("-----Error-----")
-            	});
-            }
-            $scope.get_vehicles = function(page){
-                page = page || 1
-                if(page == 1){
-                    $scope.loading.vehicles = true
-                }
-            	$http.get(server+'vehicles?set=200&page='+page,{})
-            	.success(function(data, s, h) {
-                	$scope.vehicles = $scope.vehicles.concat(data.data)
-                    if(page < data.pages){
-                        $scope.get_vehicles(page+1)
-                    }else{
-                        $scope.loading.vehicles = false
-                    }
-                })
-                .error(function(data,s,h) {
-            		console.log(data,s,h)
-                	console.log("-----Error-----")
-            	});
-        	}
-            $scope.test = function(a){
-                console.log(a)
-            }
-            $scope.select_vehicle = function(vehicle){
-                $scope.selected_vehicle = vehicle
-                $localStorage.vehicle = vehicle
-            }
-            $scope.generate_report = function(){
-                $scope.report_data = {loading:'........'}
-                from_date = $scope.dts.from
-                to_date = $scope.dts.to
-                from = from_date.getFullYear()+'/'+(from_date.getMonth()+1)+'/'+from_date.getDate()
-                to = to_date.getFullYear()+'/'+(to_date.getMonth()+1)+'/'+to_date.getDate()
-                request = {
-                    vehicles : $scope.selected_vehicle.id,
-                    codes : [2,3],
-                    fields : "io_ign,mph,code,lat,lon,vo,event_time",
-                    from : from,
-                    to : to
-                }
-                $http.get(server+'rawdata?'+to_url(request))
-                .success(function(data){
-                    $scope.report_data = data
-                    $localStorage.report_data = data
-                })
-            }
-            $scope.process = function(){
-
-            }
-            if($scope.auth.token){
-                $http.defaults.headers.common.Authenticate = $scope.auth.token
-                $scope.login_check()
-            }
-            if($scope.report_data.days){
-                $scope.process()
-            }
-        })
-    </script>
 </body>
 </html>
