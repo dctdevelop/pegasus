@@ -19,7 +19,7 @@ auth <- list (
 ```
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
-auth$password = "dctdevelop"
+auth$password = "deV3lopErs"
 ```
 
 

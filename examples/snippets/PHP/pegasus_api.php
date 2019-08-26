@@ -15,7 +15,7 @@ $source = "https://pegasus1.pegasusgateway.com"; //URL your pegasus site.
 *  __PASSWORD__ refers to your password for sign in on pegasus.
 *  Test credentials:
 *  username: developer@digitalcomtech.com
-*  password: dctdevelop
+*  password: deV3lopErs
 */
 $credentials = '{"username":"__USERNAME__", "password":"__PASSWORD__"}';
 
