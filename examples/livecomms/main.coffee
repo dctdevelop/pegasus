@@ -9,7 +9,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		pegasus : "https://pegasus1.pegasusgateway.com"
 		username: "developer@digitalcomtech.com"
 		password: "deV3lopErs"
-		server : 'https://pegasus1.pegasusgateway.com/api/'
+		server : 'https://carpro.comertradecorp.com/api/'
 	$scope.token = null
 	$scope.vehicles = []
 	$scope.vehicles_lis = []

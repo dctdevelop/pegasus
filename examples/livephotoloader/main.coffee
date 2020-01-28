@@ -15,7 +15,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 	$scope.listening = []
 
 	socket.on '_authenticated', (data)->
-		console.log data
+		# console.log data
 		$scope.vehicles = data.vehicles
 		$scope.$apply()
 		socket.emit("resources")
@@ -34,7 +34,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		return
 
 	socket.on 'resources', (resources)->
-		console.log resources
+		# console.log resources
 		# $scope.resources = resources
 		# $scope.$apply()
 		return
@@ -42,6 +42,9 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		namespace = envelope.namespace
 		vehicle = envelope.object
 		payload = clean_payload envelope.payload
+		console.log "dphoto_ptr -> ", payload.event.dphoto_ptr is null
+		if payload.event.dphoto_ptr is null
+			return
 		window.globalHook?(payload)
 		if 'event' not in payload.updates
 			return
@@ -61,6 +64,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		return
 
 	clean_payload = (payload)->
+		# console.log payload
 		payload._ver_core ?= '1.8.x'
 		if payload._ver_core.indexOf('1.8.') == 0
 			_event = payload
@@ -88,7 +92,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		return
 
 	$scope.toggle = (vehicle)->
-		console.log vehicle, $scope.listening
+		# console.log vehicle, $scope.listening
 		if vehicle in $scope.listening
 			$scope.stop vehicle
 		else
@@ -106,17 +110,17 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 			$scope.listening.push(vehicle)
 
 		envelope = {namespace:"vehicle-events", objects: vehicle}
-		console.log('emitting listen to server', envelope)
+		# console.log('emitting listen to server', envelope)
 		socket.emit 'listen', envelope, process_cache
 
 		return
 
 	process_cache = (events)->
 		for ev in events
-			console.log "e",ev.primary_id
-			clean = clean_payload ev
+			# console.log "e",ev.primary_id
+			# clean = clean_payload ev
 			$scope.logs.push clean_payload ev
-		console.log "full",$scope.logs
+		# console.log "full",$scope.logs
 		$timeout ()->
 			victim = angular.element(document.getElementById('scrollme'))[0]
 			victim?.scrollTop = victim?.scrollHeight+10000
@@ -126,7 +130,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		return
 	photoinfo = []
 	load_photo = (vehicle)->
-		console.log "vid", vehicle
+		# console.log "vid", vehicle
 		if !vehicle
 			return
 		$http.get("#{$scope.auth.pegasus}/api/vehicles/"+vehicle+"/plugins/photocam/last")
@@ -146,7 +150,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		else
 			$scope.listening.splice($scope.listening.indexOf(vehicle), 1)
 
-		console.log('emitting stop to server', vehicle)
+		# console.log('emitting stop to server', vehicle)
 		socket.emit 'stop:vehicles', vehicle
 		return
 
@@ -176,7 +180,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		.then (response)->
 			data = response.data
 			$scope.vehicles_list = $scope.vehicles_list.concat(data.data)
-			console.log $scope.vehicles_list
+			# console.log $scope.vehicles_list
 			if page != data.pages
 				$scope.getVehicles page + 1
 			return

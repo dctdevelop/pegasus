@@ -6,9 +6,17 @@ Name reflects ```major```, ```minor``` and ```patch``` concepts:
 	major.minor.patch
 ```
 
-Breaking changes may occur on ```major``` and ```minor``` numbers. ```patches```, are not expected to affect compatibility.
+Breaking changes may occur on ```major``` and ```minor``` numbers. 
+```patches```, are not expected to affect compatibility.
 
 ## Releases
+
+### [5.00.x - Jan 28, 2020](https://github.com/dctdevelop/pegasus/blob/master/releases/5.0.0.release.md)
+
+---
+### [4.00.x - Oct 20, 2019](https://github.com/dctdevelop/pegasus/blob/master/releases/4.0.0.release.md)
+
+---
 
 ### [3.00.x - Jul 04, 2019](https://github.com/dctdevelop/pegasus/blob/master/releases/3.0.0.release.md)
 
