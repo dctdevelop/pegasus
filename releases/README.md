@@ -11,6 +11,8 @@ Breaking changes may occur on ```major``` and ```minor``` numbers.
 
 ## Releases
 
+### [5.2.x - Mar 19, 2020](https://github.com/dctdevelop/pegasus/blob/master/releases/5.2.0.release.md)
+
 ### [5.1.x - Feb 18, 2020](https://github.com/dctdevelop/pegasus/blob/master/releases/5.1.0.release.md)
 
 ### [5.0.x - Jan 28, 2020](https://github.com/dctdevelop/pegasus/blob/master/releases/5.0.0.release.md)
