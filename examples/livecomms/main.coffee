@@ -4,12 +4,11 @@ window.socket = socket
 
 app = angular.module('livecomms', ['ngMaterial'])
 app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
-	$scope.main = "Sup"
 	$scope.auth =
 		pegasus : "https://pegasus1.pegasusgateway.com"
+		base_url : "https://pegasus1.pegasusgateway.com/api/"
 		username: "developer@digitalcomtech.com"
 		password: "deV3lopErs"
-		server : 'https://carpro.comertradecorp.com/api/'
 	$scope.token = null
 	$scope.vehicles = []
 	$scope.vehicles_lis = []
@@ -17,7 +16,6 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 	$scope.listening = []
 #------Set up basic handlers--------------------------#
 	socket.on '_authenticated', (data)->
-		console.log "jonny",data
 		$scope.vehicles = data.vehicles
 		$scope.$apply()
 		socket.emit("resources")
@@ -30,15 +28,12 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		return
 
 	socket.on '_update', (message)->
-		# console.info message
 		$scope.message = message
 		$scope.$apply()
 		return
 
 	socket.on 'resources', (resources)->
-		console.log "gg",resources
-		# $scope.vehicles = vehicles
-		# $scope.$apply()
+		console.log "resources: ",resources
 		return
 
 	socket.on 'events', (envelope)->
@@ -65,28 +60,14 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 
 	clean_payload = (payload)->
 		payload._ver_core ?= '1.8.x'
-		if payload._ver_core.indexOf('1.8.') == 0
-			_event = payload
-			device = _event.device
-			event.device = null
-			delete _event.device
-			_event.message = _event.taip
-			_event.event_time ?= _event.event_time_epoch
-			_event.system_time ?= _event.system_time_epoch
-			payload =
-				pre: true
-				device: device
-				event: _event
-				_ver_core: _event._ver_core
 		if payload.event?.type == 10
-			payload.event?.label ?= 'trckpt'
+			payload.event?.label ?= 'trckpnt'
 		else
 			payload.event?.label = 'N/A'
 		payload.updates ?= ['event']
 		payload
 
 	$scope.toggle = (vehicle)->
-		console.log "hey",vehicle, vehicle in $scope.listening
 		if vehicle in $scope.listening
 			$scope.stop vehicle
 		else
@@ -100,11 +81,9 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 			victim.scrollTop = victim.scrollHeight+10000
 			return
 		, 200
-
 		return
 
 	$scope.listen = (vehicle)->
-		console.log "podr", vehicle
 		if $scope._filter?.length
 			filtered = $filter('filter') $scope.vehicles, $scope._filter
 			vehicle = []
@@ -119,7 +98,6 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 
 		envelope = {namespace:"vehicle-events", objects: vehicle}
 		socket.emit 'listen', envelope, process_cache
-
 
 		console.log('emitting listen to server', envelope)
 		return
@@ -145,10 +123,8 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
 		.then (response)->
 			data = response.data
-			console.log "data",data
 			$scope.message = "Succesfully connected, establishing live communications"
 			$scope.token = data.auth
-			console.log $scope.token
 			$http.defaults.headers.common.Authenticate = data.auth
 			connect()
 			if $scope.token	 
@@ -161,7 +137,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 	$scope.getVehicles = (page)->
 		if page is undefined
 			page = 1
-		$http.get($scope.auth.server+'vehicles?page='+page)
+		$http.get($scope.auth.base_url+'vehicles?page='+page)
 		.then (response)->
 			data = response.data
 			$scope.vehicles_lis = $scope.vehicles_lis.concat(data.data)
