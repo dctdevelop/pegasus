@@ -133,7 +133,6 @@ CREATE TABLE IF NOT EXISTS UNIT_EVENTS_RPC (
 	cv47 integer default NULL,
 	cv48 integer default NULL,
 	cv49 integer default NULL,
-	cv50 integer default NULL,
 	dev_dist bigint default NULL,
 	dev_idle bigint default NULL,
 	dev_ign bigint default NULL,
