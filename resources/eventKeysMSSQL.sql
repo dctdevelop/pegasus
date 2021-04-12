@@ -407,7 +407,6 @@ CREATE TABLE IF NOT EXISTS UNIT_EVENTS_RPC (
 	lat integer default NULL,
 	light_sensor bit default NULL,
 	lon integer default NULL,
-	message text default NULL,
 	moving bit default NULL,
 	mph smallint default NULL,
 	pc integer default NULL,
