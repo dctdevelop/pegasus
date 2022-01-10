@@ -2,7 +2,9 @@
 
 ## Releases
 
-### [6.11.x - Dec 09, 2021](https://github.com/dctdevelop/pegasus/blob/master/releases/6.11.0.release.md)
+### [6.11.1 - Dec 22, 2021](https://github.com/dctdevelop/pegasus/blob/master/releases/6.11.1.release.md)
+
+### [6.11.0 - Dec 09, 2021](https://github.com/dctdevelop/pegasus/blob/master/releases/6.11.0.release.md)
 
 ### [6.10.x - Nov 24, 2021](https://github.com/dctdevelop/pegasus/blob/master/releases/6.10.0.release.md)
 
