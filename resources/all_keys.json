@@ -577,7 +577,7 @@
 		"ecu_trip_distance_flag": "T",
 		"ecu_trip_distance": 232,
 		"ecu_vin_flag": "T",
-		"ecu_vin": 233,
+		"ecu_vin": "2HNYD18661H524556",
 		"ecu_water_in_fuel_flag": "T",
 		"ecu_water_in_fuel": 234,
 		"ecu_weights_flag": "T",
