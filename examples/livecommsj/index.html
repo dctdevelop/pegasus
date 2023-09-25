@@ -82,16 +82,20 @@
 		<md-content  id="scrollme" flex layout="column" class="md-margin md-whiteframe-z1" ng-if="logs.length > 0">
 			<table class="table table-condensed table-striped table-bordered" style='width:100%; table-layout:fixed'>
 				<tr style="width: 50px;">
-					<td>Vehicle ID</td>
-					<td>Device ID</td>
-					<td>System Time</td>
-					<td>Type</td>
+					<td>Entity</td>
+					<td>Online</td>
+					<td>Device</td>
+					<td>Event time</td>
+					<td>System time</td>
+					<td>Event rate</td>
 				</tr>
 				<tr ng-repeat-start="log in logs">
-					<td>{{log.event.vid}}</td>
-					<td>{{log.event.device_id}}</td>
-					<td>{{log.event.system_time | date:'medium'}}</td>
-					<td>{{log.event.type}}</td>
+					<td>{{log.primary.name}}<br><span style="font-size:10px;">ID-{{log.primary.id}}</span></td>
+					<td>{{log.device.connection.online}}</td>
+					<td>{{log.event.device_id}}<br><span style="font-size:10px; text-transform:capitalize;">{{log.device.version.device}} {{log.device.version.number}}</span></td>
+					<td>{{log.event.event_time*1000 | date:'medium'}}</td>
+					<td>{{log.event.system_time*1000 | date:'medium'}}</td>
+					<td>{{(1/event_rate)/60 | number:1}} events per minute</td>
 				</tr>
 				<tr ng-repeat-end ng-if='log.outb_publish'>
 					<td></td>

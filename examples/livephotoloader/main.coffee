@@ -15,7 +15,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 	$scope.listening = []
 
 	socket.on '_authenticated', (data)->
-		console.log data
+		# console.log data
 		$scope.vehicles = data.vehicles
 		$scope.$apply()
 		socket.emit("resources")
@@ -23,7 +23,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 
 	socket.on '_error', (message)->
 		console.error message
-		$scope.error = error
+		$scope.error = message
 		$scope.$apply()
 		return
 
@@ -34,7 +34,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		return
 
 	socket.on 'resources', (resources)->
-		console.log resources
+		# console.log resources
 		# $scope.resources = resources
 		# $scope.$apply()
 		return
@@ -42,6 +42,9 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		namespace = envelope.namespace
 		vehicle = envelope.object
 		payload = clean_payload envelope.payload
+		console.log "dphoto_ptr -> ", payload.event.dphoto_ptr is null
+		if payload.event.dphoto_ptr is null
+			return
 		window.globalHook?(payload)
 		if 'event' not in payload.updates
 			return
@@ -61,6 +64,7 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		return
 
 	clean_payload = (payload)->
+		# console.log payload
 		payload._ver_core ?= '1.8.x'
 		if payload._ver_core.indexOf('1.8.') == 0
 			_event = payload
@@ -88,25 +92,14 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		return
 
 	$scope.toggle = (vehicle)->
-		console.log vehicle, $scope.listening
+		# console.log vehicle, $scope.listening
 		if vehicle in $scope.listening
 			$scope.stop vehicle
 		else
 			$scope.listen vehicle
-		# $scope.load_photo()
+		
+		load_photo(vehicle)
 
-	process_cache = (events)->
-		for ev in events
-			clean = clean_payload ev
-			$scope.logs.push clean_payload ev
-		console.log $scope.logs
-		$timeout ()->
-			victim = angular.element(document.getElementById('scrollme'))[0]
-			victim?.scrollTop = victim?.scrollHeight+10000
-			return
-		, 200
-
-		return
 	$scope.listen = (vehicle)->
 	
 		if $scope.vehicles.length is 0	
@@ -115,24 +108,41 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 			$scope.listening = $scope.vehicles
 		else
 			$scope.listening.push(vehicle)
-		
 
 		envelope = {namespace:"vehicle-events", objects: vehicle}
-		console.log('emitting listen to server', envelope)
+		# console.log('emitting listen to server', envelope)
 		socket.emit 'listen', envelope, process_cache
 
 		return
 
-	$scope.load_photo = (log)->
-		if !log.event?.vid
+	process_cache = (events)->
+		for ev in events
+			# console.log "e",ev.primary_id
+			# clean = clean_payload ev
+			$scope.logs.push clean_payload ev
+		# console.log "full",$scope.logs
+		$timeout ()->
+			victim = angular.element(document.getElementById('scrollme'))[0]
+			victim?.scrollTop = victim?.scrollHeight+10000
 			return
-		$http.get("#{$scope.auth.pegasus}/api/vehicles/"+log.event?.vid+"/plugins/photocam/last")
+		, 200
+
+		return
+	photoinfo = []
+	load_photo = (vehicle)->
+		# console.log "vid", vehicle
+		if !vehicle
+			return
+		$http.get("#{$scope.auth.pegasus}/api/vehicles/"+vehicle+"/plugins/photocam/last")
 		.then (response)->
 			data = response.data
-			log.photo_data = data
+			$scope.log_photo_data = data.photos
+			console.log "photo",$scope.log_photo_data
+			# for p in $scope.log_photo_data
+			# 	photoinfo[vehicle].push p
+			# console.log "phot",photoinfo,vehicle		
 		.catch (response) ->
-			$scope.error = "vehicle does not have any photos"+ ' ' + log.event?.vid  
-			console.log $scope.error +" "+log.event?.vid
+			$scope.error = response.data?.message + ', ID-' + vehicle
 	
 	$scope.stop = (vehicle)->
 		if vehicle is "all"
@@ -140,12 +150,12 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		else
 			$scope.listening.splice($scope.listening.indexOf(vehicle), 1)
 
-		console.log('emitting stop to server', vehicle)
+		# console.log('emitting stop to server', vehicle)
 		socket.emit 'stop:vehicles', vehicle
 		return
 
 	$scope.authenticate = ()->
-		$scope.error = null
+		$scope.auth_error = null
 		$scope.vehicles = []
 		$scope.logs = []
 		$scope.listening = []
@@ -154,14 +164,14 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		$http.post $scope.auth.pegasus+"/api/login", $scope.auth
 		.then (response)->
 			data = response.data
-			$scope.message = "Succesfully connected, establishing live communications"
+			$scope.message = "Successfully connected, establishing live communications"
 			$scope.token = data.auth
 			$http.defaults.headers.common.Authenticate = data.auth
 			connect()
 			$scope.getVehicles()
 			return
 		.catch (response)->
-			$scope.error = "Invalid credentials." + " " + response.data.message 
+			$scope.auth_error = response.data.message 
 			return
 	$scope.getVehicles = (page)->
 		if page is undefined
@@ -170,12 +180,12 @@ app.controller "MainCtrl", ($scope, $http, $timeout)->
 		.then (response)->
 			data = response.data
 			$scope.vehicles_list = $scope.vehicles_list.concat(data.data)
-			console.log $scope.vehicles_list
+			# console.log $scope.vehicles_list
 			if page != data.pages
 				$scope.getVehicles page + 1
 			return
 		.catch (response)->
-			$scope.error = "Invalid vehicles"
+			$scope.error = response
 			return
 		return
 	$scope.destroy = ()->

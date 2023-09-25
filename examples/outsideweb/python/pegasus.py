@@ -54,7 +54,7 @@ def getRawData(*args, **kwargs):
 			#"fields" : "rssi:@cf_rssi,vi:'vid:'+@vid__str,mph,valid_position,comdelay,type,vid,label,code,lat,lon,hdop",
 			"basic" : "1"
 			}
-		peg.getRawData("https://pegasus1.pegasusgateway.com", "developer@digitalcomtech.com", "dctdevelop", query=query)
+		peg.getRawData("https://pegasus1.pegasusgateway.com", "developer@digitalcomtech.com", "deV3lopErs", query=query)
 
 		peg.getRawData("https://thesite.com", "user@digitalcomtech.com", "12333221", jobid=443)
 

@@ -78,8 +78,12 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 				device: device
 				event: _event
 				_ver_core: _event._ver_core
+
+		if payload.device?.lrates?
+			$scope.event_rate = payload.device.lrates?["rx_m_accepted-evt-10"]
+
 		if payload.event?.type == 10
-			payload.event?.label ?= 'trckpt'
+			payload.event?.label ?= 'trckpnt'
 		else
 			payload.event?.label = 'N/A'
 		payload.updates ?= ['event']
@@ -148,7 +152,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 			data = response.data
 			console.log "data",data
 			$scope.data_auth = data 
-			$scope.message = "Succesfully connected, establishing live communications"
+			$scope.message = "Successfully connected, establishing live communications"
 			$scope.token = data.auth
 			console.log $scope.token
 			$http.defaults.headers.common.Authenticate = data.auth
@@ -157,7 +161,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 				$scope.getVehicles()
 			return
 		.catch (response)->
-			$scope.error = "Invalid credentials."
+			$scope.error = "Invalid credentials"
 			return
 	$scope.logout  = ->
 		$http.get $scope.auth.server+'logout'
@@ -167,7 +171,7 @@ app.controller "MainCtrl", ($scope, $http, $filter, $timeout)->
 			$scope.token = undefined
 			return
 		.catch (response)->
-			$scope.error = "Invalid credentials."
+			$scope.error = "Invalid credentials"
 			return
 
 #-------------------------GET USER VEHICLES ----------------------------------------//

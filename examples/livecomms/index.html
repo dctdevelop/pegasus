@@ -70,30 +70,29 @@
 			</div>
 		</div>
 		<div layout="row" layout-align="start center" flex="none" layout-margin>
-			<p class="md-body-2">Console<p>
-			<md-button class='md-raised' ng-click='logs=[]'>Clear</md-button>
+			<md-button class='md-raised' ng-click='logs=[]'>Clear Console</md-button>
 		</div>
 		<md-content  id="scrollme" flex layout="column" class="md-margin md-whiteframe-z1">
-			<table class="table table-condensed table-striped table-bordered" style='width:100%; table-layout:fixed'>
+			<table class="table table-condensed table-striped table-bordered" style="width:100%; table-layout:fixed;">
 				<tr style="width: 50px;">
 					<td>Primary</td>
 					<td>Secondary</td>
-					<td>time</td>
-					<td>code</td>
-					<td>label</td>
-					<td>location</td>
+					<td>Time</td>
+					<td>Code</td>
+					<td>Label</td>
+					<td>Location</td>
 				</tr>
 				<tr ng-repeat-start="log in logs">
-					<td>{{log.primary.name}}<br><span style="color: #777; font-size: 8px;"> ID-{{log.primary.id}}</span></td>
-					<td>{{log.secondary.name}}<br><span style="color: #777; font-size: 8px;"> ID-{{log.secondary.id}}</span></td>
-					<td>{{log.event.event_time * 1000 | date:'medium'}}</td>
+					<td>{{log.primary.name}}<br><span style="color: #777; font-size: 12px;"> ID-{{log.primary.id}}</span></td>
+					<td>{{log.secondary.name}}<br><span style="color: #777; font-size: 12px;" ng-if="log.secondary"> ID-{{log.secondary.id}}</span></td>
+					<td>{{log.event.event_time * 1000 | date:'EEEE, MMM d, y h:mm:ss a'}}</td>
 					<td>{{log.event.code}}</td>
-					<td>{{log.event.label || 'trckpt'}}</td>
+					<td>{{log.event.label || 'trckpnt'}}</td>
 					<td>{{log.event.lat}},{{log.event.lon}}</td>
 				</tr>
 				<tr>
-					<td style="font-size: 8px; padding-bottom:16px;" class='text-warning' colspan='6' >
-						<div style="width:100%; overflow-x:scroll">{{log.event.message}}</div>
+					<td style="font-size: 12px; padding-bottom:18px;" colspan="6">
+						<div style="width:100%; overflow-x:scroll"><pre style="background:#1E1E1E; color:rgb(218, 226, 235);">{{log.event.message}}</pre></div>
 					</td>
 				</tr>
 				<!-- <tr>
